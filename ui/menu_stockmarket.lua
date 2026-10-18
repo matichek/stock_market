@@ -9,6 +9,12 @@ local menu = {
 	headline = "",
 	status = nil,
 	shown = false,
+	viewMode = "table",
+	graphId = nil,
+	notices = true,
+	history = {},
+	portHistory = {},
+	lastGen = nil,
 }
 
 local config = {
@@ -129,12 +135,19 @@ end
 
 function menu.parse(blob)
 	blob = tostring(blob or "")
-	local body, headline = blob:match("^(.-)||(.*)$")
+	local body, headline, notices, gen = blob:match("^(.-)||(.*)||([01])||(%d+)$")
+	if not body then
+		body, headline = blob:match("^(.-)||(.*)$")
+		notices = "1"
+		gen = nil
+	end
 	if not body then
 		body = blob
 		headline = ""
 	end
 	menu.headline = headline or ""
+	menu.notices = notices ~= "0"
+	menu.pendingGen = gen and tonumber(gen) or nil
 	menu.stocks = {}
 	for rec in body:gmatch("[^;]+") do
 		local id, price, shares, avg = rec:match("([^,]+),([^,]+),([^,]+),([^,]+)")
@@ -149,8 +162,40 @@ function menu.parse(blob)
 	end
 end
 
+function menu.record()
+	if menu.pendingGen ~= nil and menu.pendingGen == menu.lastGen then
+		return
+	end
+	if menu.pendingGen ~= nil then
+		menu.lastGen = menu.pendingGen
+	end
+	local total, owned = 0, 0
+	for _, stock in ipairs(menu.stocks) do
+		local series = menu.history[stock.id]
+		if not series then
+			series = {}
+			menu.history[stock.id] = series
+		end
+		table.insert(series, stock.price)
+		while #series > 24 do
+			table.remove(series, 1)
+		end
+		if stock.shares > 0 then
+			total = total + stock.price * stock.shares
+			owned = owned + 1
+		end
+	end
+	if owned > 0 then
+		table.insert(menu.portHistory, total)
+		while #menu.portHistory > 24 do
+			table.remove(menu.portHistory, 1)
+		end
+	end
+end
+
 function menu.onState(_, blob)
 	menu.parse(blob)
+	menu.record()
 	menu.status = nil
 	if menu.shown then
 		menu.display()
@@ -188,6 +233,56 @@ end
 local headerText = {
 	font = Helper.standardFontBold,
 }
+
+local function drawBars(frame, x, y, width, title, samples)
+	local count = math.max(#samples, 1)
+	local chart = frame:addTable(count, { tabOrder = 4, width = width, x = x, y = y, highlightMode = "off" })
+	local titleRow = chart:addRow(false, { fixed = true, bgColor = Color["row_title_background"] })
+	titleRow[1]:setColSpan(count):createText(title, headerText)
+	if #samples < 2 then
+		local waitRow = chart:addRow(false, { fixed = true })
+		waitRow[1]:setColSpan(count):createText(ReadText(551001, 84))
+		return chart
+	end
+	local low, high = samples[1], samples[1]
+	for _, value in ipairs(samples) do
+		if value < low then
+			low = value
+		end
+		if value > high then
+			high = value
+		end
+	end
+	local span = high - low
+	if span < 1 then
+		span = 1
+	end
+	local rows = 8
+	for level = rows, 1, -1 do
+		local row = chart:addRow(false, { fixed = true })
+		for col, value in ipairs(samples) do
+			local filled = math.floor(((value - low) / span) * (rows - 1) + 1.5)
+			if filled < 1 then
+				filled = 1
+			end
+			local previous = samples[col - 1] or value
+			local color = Color["text_normal"]
+			if value > previous then
+				color = Color["text_positive"]
+			elseif value < previous then
+				color = Color["text_negative"]
+			end
+			if level <= filled then
+				row[col]:createText("|", { halign = "center", color = color })
+			else
+				row[col]:createText(" ", { halign = "center" })
+			end
+		end
+	end
+	local scale = chart:addRow(false, { fixed = true })
+	scale[1]:setColSpan(count):createText(ReadText(551001, 85) .. "  " .. moneyText(low) .. "    " .. ReadText(551001, 86) .. "  " .. moneyText(high), { halign = "right" })
+	return chart
+end
 
 local function setColumns(ftable)
 	ftable:setColWidthPercent(1, 28)
@@ -231,6 +326,22 @@ function menu.display()
 	addAmountButton(amountRow, 5, ReadText(551001, 15), "max")
 	amountRow[6]:createText(ReadText(551001, 17), { halign = "right", color = Color["text_normal"] })
 
+	local switchRow = header:addRow(false, { fixed = true })
+	switchRow[1]:setColSpan(2):createButton({
+		bgColor = menu.viewMode == "graph" and Color["row_background_selected"] or Color["button_background_default"],
+	}):setText(menu.viewMode == "graph" and ReadText(551001, 81) or ReadText(551001, 80), { halign = "center" })
+	switchRow[1].handlers.onClick = function ()
+		menu.viewMode = menu.viewMode == "graph" and "table" or "graph"
+		menu.display()
+	end
+	switchRow[3]:setColSpan(2):createButton({
+		bgColor = menu.notices and Color["row_background_selected"] or Color["button_background_default"],
+	}):setText(menu.notices and ReadText(551001, 82) or ReadText(551001, 83), { halign = "center" })
+	switchRow[3].handlers.onClick = function ()
+		AddUITriggeredEvent("StockMarket", menu.notices and "notices_off" or "notices_on")
+	end
+	switchRow[5]:setColSpan(2):createText("", { halign = "right" })
+
 	if menu.status and menu.status ~= "" then
 		local statusRow = header:addRow(false, { fixed = true })
 		statusRow[1]:setColSpan(6):createText(menu.status, { color = Color["text_negative"] })
@@ -241,6 +352,48 @@ function menu.display()
 	end
 
 	y = header.properties.y + header:getVisibleHeight() + Helper.borderSize
+
+	if menu.viewMode == "graph" then
+		if not menu.graphId and menu.stocks[1] then
+			menu.graphId = menu.stocks[1].id
+		end
+		local selected = findStock(menu.graphId) or menu.stocks[1]
+		local series = selected and menu.history[selected.id] or {}
+		local priceChart = drawBars(frame, x, y, width, selected and stockName(selected.id) or ReadText(551001, 80), series or {})
+		y = priceChart.properties.y + priceChart:getVisibleHeight() + Helper.borderSize
+		local portChart = drawBars(frame, x, y, width, ReadText(551001, 87), menu.portHistory)
+		y = portChart.properties.y + portChart:getVisibleHeight() + Helper.borderSize
+
+		local picker = frame:addTable(4, { tabOrder = 5, width = width, x = x, y = y, highlightMode = "off" })
+		picker:setColWidthPercent(1, 40)
+		picker:setColWidthPercent(2, 20)
+		picker:setColWidthPercent(3, 20)
+		picker:setColWidthPercent(4, 20)
+		for _, stock in ipairs(menu.stocks) do
+			local picked = selected and stock.id == selected.id
+			local row = picker:addRow(stock.id, { fixed = true })
+			row[1]:createButton({
+				bgColor = picked and Color["row_background_selected"] or Color["button_background_default"],
+			}):setText(stockName(stock.id), { halign = "center" })
+			row[1].handlers.onClick = function ()
+				menu.graphId = stock.id
+				menu.display()
+			end
+			row[2]:createText(moneyText(stock.price), { halign = "right" })
+			local qty = menu.resolveQty(stock, "buy")
+			local pay = unitCost(stock.price, true) * math.max(qty, 0)
+			row[3]:createButton({ mouseOverText = ReadText(551001, 22) .. "  " .. moneyText(pay) }):setText(ReadText(551001, 10), { halign = "center" })
+			row[3].handlers.onClick = function ()
+				menu.trade("buy", stock.id)
+			end
+			row[4]:createButton({}):setText(ReadText(551001, 11), { halign = "center" })
+			row[4].handlers.onClick = function ()
+				menu.trade("sell", stock.id)
+			end
+		end
+		frame:display()
+		return
+	end
 
 	local holdings = frame:addTable(6, { tabOrder = 2, width = width, x = x, y = y, highlightMode = "off" })
 	setColumns(holdings)
