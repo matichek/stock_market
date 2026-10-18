@@ -2,7 +2,7 @@
 <language id="44">
   <page id="551001" title="Stock Market" descr="Stock Market mod" voice="no">
     <t id="1">Exchange</t>
-    <t id="2">A broker terminal is on your account. Open Player Information and choose Exchange, or press Shift+J. Prices move every 10 seconds.</t>
+    <t id="2">A broker terminal is on your account. Open Player Information. Exchange is the first icon on the left sidebar. Shift+J opens it from the cockpit. Prices move every 10 seconds.</t>
     <t id="3">No holdings yet.</t>
     <t id="4">Name</t>
     <t id="5">Bought</t>

@@ -1,6 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mdscript name="StockMarket" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
   <cues>
+    <library name="SM_StockName">
+      <actions>
+        <do_if value="md.$SM_NameIdx == 1"><set_value name="md.$SM_NameTemp" exact="{551001,30}" /></do_if>
+        <do_elseif value="md.$SM_NameIdx == 2"><set_value name="md.$SM_NameTemp" exact="{551001,31}" /></do_elseif>
+        <do_elseif value="md.$SM_NameIdx == 3"><set_value name="md.$SM_NameTemp" exact="{551001,32}" /></do_elseif>
+        <do_elseif value="md.$SM_NameIdx == 4"><set_value name="md.$SM_NameTemp" exact="{551001,33}" /></do_elseif>
+        <do_elseif value="md.$SM_NameIdx == 5"><set_value name="md.$SM_NameTemp" exact="{551001,34}" /></do_elseif>
+        <do_elseif value="md.$SM_NameIdx == 6"><set_value name="md.$SM_NameTemp" exact="{551001,35}" /></do_elseif>
+        <do_elseif value="md.$SM_NameIdx == 7"><set_value name="md.$SM_NameTemp" exact="{551001,36}" /></do_elseif>
+        <do_elseif value="md.$SM_NameIdx == 8"><set_value name="md.$SM_NameTemp" exact="{551001,37}" /></do_elseif>
+        <do_elseif value="md.$SM_NameIdx == 9"><set_value name="md.$SM_NameTemp" exact="{551001,38}" /></do_elseif>
+        <do_elseif value="md.$SM_NameIdx == 10"><set_value name="md.$SM_NameTemp" exact="{551001,39}" /></do_elseif>
+        <do_elseif value="md.$SM_NameIdx == 11"><set_value name="md.$SM_NameTemp" exact="{551001,40}" /></do_elseif>
+        <do_elseif value="md.$SM_NameIdx == 12"><set_value name="md.$SM_NameTemp" exact="{551001,41}" /></do_elseif>
+        <do_elseif value="md.$SM_NameIdx == 13"><set_value name="md.$SM_NameTemp" exact="{551001,42}" /></do_elseif>
+        <do_else><set_value name="md.$SM_NameTemp" exact="{551001,43}" /></do_else>
+      </actions>
+    </library>
+
+    <library name="SM_Sum">
+      <actions>
+        <set_value name="md.$SM_ValueScratch" exact="0" />
+        <set_value name="md.$SM_Owned" exact="0" />
+        <do_all exact="14" counter="$i">
+          <set_value name="md.$SM_ValueScratch" exact="(md.$SM_ValueScratch + (md.$SM_Prices.{$i} * md.$SM_Shares.{$i}))i" />
+          <set_value name="md.$SM_Owned" exact="(md.$SM_Owned + md.$SM_Shares.{$i})i" />
+        </do_all>
+      </actions>
+    </library>
+
+    <library name="SM_Publish">
+      <actions>
+        <set_value name="$blob" exact="''" />
+        <do_all exact="14" counter="$i">
+          <set_value name="$p" exact="(md.$SM_Prices.{$i})i" />
+          <set_value name="$s" exact="(md.$SM_Shares.{$i})i" />
+          <set_value name="$a" exact="(md.$SM_Avg.{$i})i" />
+          <set_value name="$ls" exact="(md.$SM_LastStep.{$i})i" />
+          <set_value name="$blob" exact="$blob + md.$SM_Ids.{$i} + ',' + $p + ',' + $s + ',' + $a + ',' + $ls + ';'" />
+        </do_all>
+        <set_value name="$note" exact="if md.$SM_Notices == false then '0' else '1'" />
+        <set_value name="$gen" exact="(md.$SM_TickGen)i" />
+        <set_value name="$blob" exact="$blob + '||' + md.$SM_Headline + '||' + $note + '||' + $gen" />
+        <raise_lua_event name="'stockmarket.state'" param="$blob" />
+      </actions>
+    </library>
+
     <cue name="StockMarket_Start" namespace="this">
       <conditions>
         <check_any>
@@ -89,11 +136,11 @@
 
             <set_value name="$market" min="-2" max="2" />
             <do_all exact="14" counter="$i">
-              <set_value name="$price" exact="md.$SM_Prices.{$i}" />
-              <set_value name="$pull" exact="(100 - $price) / 40" />
-              <set_value name="$swing" exact="md.$SM_Swing.{$i}" />
-              <set_value name="$marketPart" exact="($market * md.$SM_Beta.{$i}) / 100" />
-              <set_value name="$mom" exact="md.$SM_LastStep.{$i} / 2" />
+              <set_value name="$price" exact="(md.$SM_Prices.{$i})i" />
+              <set_value name="$pull" exact="((100 - $price) / 40)i" />
+              <set_value name="$swing" exact="(md.$SM_Swing.{$i})i" />
+              <set_value name="$marketPart" exact="(($market * md.$SM_Beta.{$i}) / 100)i" />
+              <set_value name="$mom" exact="(md.$SM_LastStep.{$i} / 2)i" />
               <do_if value="$swing le 1">
                 <set_value name="$own" min="-1" max="1" />
               </do_if>
@@ -106,13 +153,13 @@
               <do_else>
                 <set_value name="$own" min="-3" max="3" />
               </do_else>
-              <set_value name="$step" exact="$marketPart + $own + $mom + $pull" />
+              <set_value name="$step" exact="($marketPart + $own + $mom + $pull)i" />
               <set_value name="$driftRoll" min="1" max="5" />
               <do_if value="$driftRoll == 1">
-                <set_value name="$step" exact="$step + md.$SM_Drift.{$i}" />
+                <set_value name="$step" exact="($step + md.$SM_Drift.{$i})i" />
               </do_if>
               <do_if value="$shockIdx == $i">
-                <set_value name="$step" exact="$shockPct" />
+                <set_value name="$step" exact="($shockPct)i" />
               </do_if>
               <do_if value="$step gt 20">
                 <set_value name="$step" exact="20" />
@@ -121,7 +168,7 @@
                 <set_value name="$step" exact="-20" />
               </do_if>
               <set_value name="md.$SM_LastStep.{$i}" exact="$step" />
-              <set_value name="$new" exact="($price * (100 + $step)) / 100" />
+              <set_value name="$new" exact="(($price * (100 + $step)) / 100)i" />
               <do_if value="$new lt 40">
                 <set_value name="$new" exact="40" />
               </do_if>
@@ -131,7 +178,7 @@
               <set_value name="md.$SM_Prices.{$i}" exact="$new" />
             </do_all>
 
-            <set_value name="md.$SM_RegimeTicks" exact="md.$SM_RegimeTicks + 1" />
+            <set_value name="md.$SM_RegimeTicks" exact="(md.$SM_RegimeTicks + 1)i" />
             <do_if value="md.$SM_RegimeTicks ge 18">
               <set_value name="md.$SM_RegimeTicks" exact="0" />
               <set_value name="md.$SM_NameIdx" min="1" max="14" />
@@ -140,10 +187,10 @@
               <set_value name="$sign" exact="if $dir == 1 then 1 else -1" />
               <set_value name="$phrase" exact="0" />
               <do_if value="$trait == 1">
-                <set_value name="$next" exact="md.$SM_Swing.{md.$SM_NameIdx} + $sign" />
+                <set_value name="$next" exact="(md.$SM_Swing.{md.$SM_NameIdx} + $sign)i" />
                 <do_if value="$next lt 1 or $next gt 4">
                   <set_value name="$sign" exact="-$sign" />
-                  <set_value name="$next" exact="md.$SM_Swing.{md.$SM_NameIdx} + $sign" />
+                  <set_value name="$next" exact="(md.$SM_Swing.{md.$SM_NameIdx} + $sign)i" />
                 </do_if>
                 <do_if value="$next ge 1 and $next le 4 and $next != md.$SM_Swing.{md.$SM_NameIdx}">
                   <set_value name="md.$SM_Swing.{md.$SM_NameIdx}" exact="$next" />
@@ -151,10 +198,10 @@
                 </do_if>
               </do_if>
               <do_elseif value="$trait == 2">
-                <set_value name="$next" exact="md.$SM_Beta.{md.$SM_NameIdx} + ($sign * 20)" />
+                <set_value name="$next" exact="(md.$SM_Beta.{md.$SM_NameIdx} + ($sign * 20))i" />
                 <do_if value="$next lt 20 or $next gt 180">
                   <set_value name="$sign" exact="-$sign" />
-                  <set_value name="$next" exact="md.$SM_Beta.{md.$SM_NameIdx} + ($sign * 20)" />
+                  <set_value name="$next" exact="(md.$SM_Beta.{md.$SM_NameIdx} + ($sign * 20))i" />
                 </do_if>
                 <do_if value="$next ge 20 and $next le 180 and $next != md.$SM_Beta.{md.$SM_NameIdx}">
                   <set_value name="md.$SM_Beta.{md.$SM_NameIdx}" exact="$next" />
@@ -162,10 +209,10 @@
                 </do_if>
               </do_elseif>
               <do_else>
-                <set_value name="$next" exact="md.$SM_Drift.{md.$SM_NameIdx} + $sign" />
+                <set_value name="$next" exact="(md.$SM_Drift.{md.$SM_NameIdx} + $sign)i" />
                 <do_if value="$next lt -1 or $next gt 1">
                   <set_value name="$sign" exact="-$sign" />
-                  <set_value name="$next" exact="md.$SM_Drift.{md.$SM_NameIdx} + $sign" />
+                  <set_value name="$next" exact="(md.$SM_Drift.{md.$SM_NameIdx} + $sign)i" />
                 </do_if>
                 <do_if value="$next ge -1 and $next le 1 and $next != md.$SM_Drift.{md.$SM_NameIdx}">
                   <set_value name="md.$SM_Drift.{md.$SM_NameIdx}" exact="$next" />
@@ -194,11 +241,11 @@
             </do_if>
 
             <include_actions ref="SM_Sum" />
-            <set_value name="$before" exact="md.$SM_LastTotal" />
-            <set_value name="$after" exact="md.$SM_ValueScratch" />
+            <set_value name="$before" exact="(md.$SM_LastTotal)i" />
+            <set_value name="$after" exact="(md.$SM_ValueScratch)i" />
             <do_if value="md.$SM_Notices != false and md.$SM_Owned gt 0 and $before gt 0 and $after != $before">
-              <set_value name="$delta" exact="$after - $before" />
-              <set_value name="$pct" exact="($delta * 100) / $before" />
+              <set_value name="$delta" exact="($after - $before)i" />
+              <set_value name="$pct" exact="(($delta * 100) / $before)i" />
               <set_value name="$absDelta" exact="if $delta gt 0 then $delta else -$delta" />
               <set_value name="$absPct" exact="if $pct gt 0 then $pct else -$pct" />
               <do_if value="$delta gt 0">
@@ -209,7 +256,7 @@
               </do_else>
             </do_if>
             <set_value name="md.$SM_LastTotal" exact="$after" />
-            <set_value name="md.$SM_TickGen" exact="md.$SM_TickGen + 1" />
+            <set_value name="md.$SM_TickGen" exact="(md.$SM_TickGen + 1)i" />
             <include_actions ref="SM_Publish" />
             <reset_cue cue="StockMarket_Tick" />
           </actions>
@@ -232,7 +279,7 @@
               <include_actions ref="SM_Publish" />
             </do_elseif>
             <do_elseif value="true">
-              <set_value name="$qty" exact="event.param3" />
+              <set_value name="$qty" exact="(event.param3)i" />
               <set_value name="$idx" exact="0" />
               <set_value name="$side" exact="''" />
               <do_all exact="14" counter="$i">
@@ -252,22 +299,23 @@
                 <raise_lua_event name="'stockmarket.reject'" param="'refused'" />
               </do_elseif>
               <do_else>
-                <set_value name="$price" exact="md.$SM_Prices.{$idx}" />
+                <set_value name="$price" exact="(md.$SM_Prices.{$idx})i" />
                 <do_if value="$side == 'buy'">
-                  <set_value name="$cost" exact="($price * $qty * 101) / 100" />
+                  <set_value name="$cost" exact="(($price * $qty * 101) / 100)i" />
                   <do_if value="$cost lt 1">
                     <set_value name="$cost" exact="1" />
                   </do_if>
-                  <do_if value="player.money lt $cost">
+                  <set_value name="$costCr" exact="($cost)Cr" />
+                  <do_if value="player.money lt $costCr">
                     <show_notification text="{551001,18}" sound="notification_warning" />
                     <raise_lua_event name="'stockmarket.reject'" param="'funds'" />
                   </do_if>
                   <do_else>
-                    <reward_player money="-$cost" />
-                    <set_value name="$oldShares" exact="md.$SM_Shares.{$idx}" />
-                    <set_value name="$oldAvg" exact="md.$SM_Avg.{$idx}" />
-                    <set_value name="$newShares" exact="$oldShares + $qty" />
-                    <set_value name="md.$SM_Avg.{$idx}" exact="(($oldAvg * $oldShares) + ($price * $qty)) / $newShares" />
+                    <reward_player money="-$costCr" />
+                    <set_value name="$oldShares" exact="(md.$SM_Shares.{$idx})i" />
+                    <set_value name="$oldAvg" exact="(md.$SM_Avg.{$idx})i" />
+                    <set_value name="$newShares" exact="($oldShares + $qty)i" />
+                    <set_value name="md.$SM_Avg.{$idx}" exact="((($oldAvg * $oldShares) + ($price * $qty)) / $newShares)i" />
                     <set_value name="md.$SM_Shares.{$idx}" exact="$newShares" />
                     <include_actions ref="SM_Sum" />
                     <set_value name="md.$SM_LastTotal" exact="md.$SM_ValueScratch" />
@@ -275,15 +323,16 @@
                   </do_else>
                 </do_if>
                 <do_elseif value="$side == 'sell'">
-                  <do_if value="md.$SM_Shares.{$idx} lt $qty">
+                  <do_if value="(md.$SM_Shares.{$idx})i lt $qty">
                     <raise_lua_event name="'stockmarket.reject'" param="'refused'" />
                   </do_if>
                   <do_else>
-                    <set_value name="$proceeds" exact="($price * $qty * 99) / 100" />
+                    <set_value name="$proceeds" exact="(($price * $qty * 99) / 100)i" />
                     <do_if value="$proceeds gt 0">
-                      <reward_player money="$proceeds" />
+                      <set_value name="$proceedsCr" exact="($proceeds)Cr" />
+                      <reward_player money="$proceedsCr" />
                     </do_if>
-                    <set_value name="md.$SM_Shares.{$idx}" exact="md.$SM_Shares.{$idx} - $qty" />
+                    <set_value name="md.$SM_Shares.{$idx}" exact="((md.$SM_Shares.{$idx})i - $qty)i" />
                     <do_if value="md.$SM_Shares.{$idx} le 0">
                       <set_value name="md.$SM_Shares.{$idx}" exact="0" />
                       <set_value name="md.$SM_Avg.{$idx}" exact="0" />
@@ -300,47 +349,4 @@
       </cues>
     </cue>
   </cues>
-
-  <library name="SM_StockName">
-    <actions>
-      <do_if value="md.$SM_NameIdx == 1"><set_value name="md.$SM_NameTemp" exact="{551001,30}" /></do_if>
-      <do_elseif value="md.$SM_NameIdx == 2"><set_value name="md.$SM_NameTemp" exact="{551001,31}" /></do_elseif>
-      <do_elseif value="md.$SM_NameIdx == 3"><set_value name="md.$SM_NameTemp" exact="{551001,32}" /></do_elseif>
-      <do_elseif value="md.$SM_NameIdx == 4"><set_value name="md.$SM_NameTemp" exact="{551001,33}" /></do_elseif>
-      <do_elseif value="md.$SM_NameIdx == 5"><set_value name="md.$SM_NameTemp" exact="{551001,34}" /></do_elseif>
-      <do_elseif value="md.$SM_NameIdx == 6"><set_value name="md.$SM_NameTemp" exact="{551001,35}" /></do_elseif>
-      <do_elseif value="md.$SM_NameIdx == 7"><set_value name="md.$SM_NameTemp" exact="{551001,36}" /></do_elseif>
-      <do_elseif value="md.$SM_NameIdx == 8"><set_value name="md.$SM_NameTemp" exact="{551001,37}" /></do_elseif>
-      <do_elseif value="md.$SM_NameIdx == 9"><set_value name="md.$SM_NameTemp" exact="{551001,38}" /></do_elseif>
-      <do_elseif value="md.$SM_NameIdx == 10"><set_value name="md.$SM_NameTemp" exact="{551001,39}" /></do_elseif>
-      <do_elseif value="md.$SM_NameIdx == 11"><set_value name="md.$SM_NameTemp" exact="{551001,40}" /></do_elseif>
-      <do_elseif value="md.$SM_NameIdx == 12"><set_value name="md.$SM_NameTemp" exact="{551001,41}" /></do_elseif>
-      <do_elseif value="md.$SM_NameIdx == 13"><set_value name="md.$SM_NameTemp" exact="{551001,42}" /></do_elseif>
-      <do_else><set_value name="md.$SM_NameTemp" exact="{551001,43}" /></do_else>
-    </actions>
-  </library>
-
-  <library name="SM_Sum">
-    <actions>
-      <set_value name="md.$SM_ValueScratch" exact="0" />
-      <set_value name="md.$SM_Owned" exact="0" />
-      <do_all exact="14" counter="$i">
-        <set_value name="md.$SM_ValueScratch" exact="md.$SM_ValueScratch + (md.$SM_Prices.{$i} * md.$SM_Shares.{$i})" />
-        <set_value name="md.$SM_Owned" exact="md.$SM_Owned + md.$SM_Shares.{$i}" />
-      </do_all>
-    </actions>
-  </library>
-
-  <library name="SM_Publish">
-    <actions>
-      <set_value name="$blob" exact="''" />
-      <do_all exact="14" counter="$i">
-        <set_value name="$blob" exact="$blob + md.$SM_Ids.{$i} + ',' + md.$SM_Prices.{$i} + ',' + md.$SM_Shares.{$i} + ',' + md.$SM_Avg.{$i} + ';'" />
-      </do_all>
-      <set_value name="$note" exact="if md.$SM_Notices == false then '0' else '1'" />
-      <set_value name="$gen" exact="md.$SM_TickGen" />
-      <set_value name="$blob" exact="$blob + '||' + md.$SM_Headline + '||' + $note + '||' + $gen" />
-      <raise_lua_event name="'stockmarket.state'" param="$blob" />
-    </actions>
-  </library>
 </mdscript>

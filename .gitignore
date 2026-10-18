@@ -1,0 +1,5 @@
+dist/
+*.zip
+Thumbs.db
+Desktop.ini
+.DS_Store

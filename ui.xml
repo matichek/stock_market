@@ -4,8 +4,5 @@
     <dependency name="ego_detailmonitor" />
     <file name="ui/menu_stockmarket.lua" />
     <file name="ui/menu_playerinfo_hook.lua" />
-    <bindinggroup id="stockmarket" context="INPUT_CONTEXT_STOCK_MARKET" alwaysactive="true">
-      <binding action="INPUT_ACTION_OPEN_STOCK_MARKET" />
-    </bindinggroup>
   </environment>
 </addon>

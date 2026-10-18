@@ -6,11 +6,11 @@ Buy and sell in-universe companies with credits. Prices move every 10 seconds of
 
 1. Enable **Stock Market** in the game’s Extensions menu, then load a save.
 2. Open **Player Information** (the person icon on the top bar).
-3. Click **Exchange**. It is the button at the top of that screen, just to the right of the sidebar icons. A sidebar icon with the same name is there too when the game allows it.
+3. Click the first icon on the left sidebar. Its tooltip is **Exchange**.
 
-**Shift+J** opens the same screen from the cockpit.
+**Shift+J** opens the same screen from the cockpit, and closes it if it is already open.
 
-**Graph** switches the screen to bar charts: one for the company you pick, and one for the value of everything you hold. Each bar is one 10-second tick. Green is a step up, red is a step down. **Table** returns to the holdings list.
+**Graph** switches the screen to line charts: one for the company you pick, and one for the value of everything you hold. Each point is one 10-second tick. The line is green when the series is up from its start, red when it is down. **Table** returns to the holdings list. The Available list also shows the last tick in green or red, for example `+3% (+8%)`.
 
 **Notices on** / **Notices off** turns the flying portfolio banner on or off. News in the logbook still appears. A refused buy still warns you.
 

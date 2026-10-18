@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<language id="44">
+  <page id="551001" title="Stock Market" descr="Stock Market mod" voice="no">
+    <t id="1">Exchange</t>
+    <t id="2">A broker terminal is on your account. Open Player Information. Exchange is the first icon on the left sidebar. Shift+J opens it from the cockpit. Prices move every 10 seconds.</t>
+    <t id="3">No holdings yet.</t>
+    <t id="4">Name</t>
+    <t id="5">Bought</t>
+    <t id="6">Change</t>
+    <t id="7">New price</t>
+    <t id="8">Shares</t>
+    <t id="9">Sum</t>
+    <t id="10">Buy</t>
+    <t id="11">Sell</t>
+    <t id="12">Cash</t>
+    <t id="13">Holdings</t>
+    <t id="14">Available</t>
+    <t id="15">Max</t>
+    <t id="16">Amount</t>
+    <t id="17">1% commission on buy and sell.</t>
+    <t id="18">Not enough credits.</t>
+    <t id="19">That order was refused.</t>
+    <t id="20">Portfolio \033#text_positive#+%1%%\033X (\033#text_positive#+%2 Cr\033X)</t>
+    <t id="21">Portfolio \033#text_negative#-%1%%\033X (\033#text_negative#-%2 Cr\033X)</t>
+    <t id="22">You pay</t>
+    <t id="23">You receive</t>
+
+    <t id="30">Argon Prime Yards</t>
+    <t id="31">Antigone Memorial Works</t>
+    <t id="32">Teladi Profit Guarantee</t>
+    <t id="33">Ministry Ledger</t>
+    <t id="34">Paranid Sacred Lattice</t>
+    <t id="35">Pontifex Reliquary</t>
+    <t id="36">Zyarth Blood-Steel</t>
+    <t id="37">Hatikvah Free Haul</t>
+    <t id="38">Eighteen Billion Freight</t>
+    <t id="39">Grand Exchange Mercantile</t>
+    <t id="40">Nopileos Ore Trust</t>
+    <t id="41">Second Contact Logistics</t>
+    <t id="42">Black Hole Sun Mining</t>
+    <t id="43">Scale Plate Salvage</t>
+
+    <t id="50">Argon Prime Yards signed a new wharf contract.</t>
+    <t id="51">Antigone Memorial Works delayed a hull delivery.</t>
+    <t id="52">Teladi Profit Guarantee posted a quiet dividend rumor.</t>
+    <t id="53">Ministry Ledger tightened a bond issue.</t>
+    <t id="54">Paranid Sacred Lattice consecrated a new foundry.</t>
+    <t id="55">Pontifex Reliquary lost a convoy in the fog.</t>
+    <t id="56">Zyarth Blood-Steel opened another war foundry.</t>
+    <t id="57">Hatikvah Free Haul slipped a cargo past a patrol.</t>
+    <t id="58">Eighteen Billion Freight picked up a refugee charter.</t>
+    <t id="59">Grand Exchange Mercantile moved a large ware block.</t>
+    <t id="60">Nopileos Ore Trust struck a fresh silicon vein.</t>
+    <t id="61">Second Contact Logistics rerouted a hauler wing.</t>
+    <t id="62">Black Hole Sun Mining lost a drill platform.</t>
+    <t id="63">Scale Plate Salvage towed in a wrecked destroyer.</t>
+    <t id="70">is calmer now.</t>
+    <t id="71">is wilder now.</t>
+    <t id="72">is following the market more closely.</t>
+    <t id="73">is moving more on its own.</t>
+    <t id="74">is leaning up.</t>
+    <t id="75">is leaning down.</t>
+    <t id="76">has no long-term lean.</t>
+    <t id="80">Graph</t>
+    <t id="81">Table</t>
+    <t id="82">Notices on</t>
+    <t id="83">Notices off</t>
+    <t id="84">Waiting for more prices.</t>
+    <t id="85">Low</t>
+    <t id="86">High</t>
+    <t id="87">Portfolio</t>
+  </page>
+</language>
