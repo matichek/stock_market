@@ -162,7 +162,7 @@ local function stockTooltip(stock)
 	local fairLabel = ReadText(551001, 100) .. ": " .. moneyText(fair)
 	local swingLabel = ReadText(551001, 104) .. ": " .. tostring(stock.swing or 2) .. "/4  |  " .. ReadText(551001, 105) .. ": " .. tostring(stock.beta or 100) .. "%"
 	if desc ~= "" then
-		return desc .. "\n" .. fairLabel .. "  |  " .. swingLabel
+		return desc .. "  |  " .. fairLabel .. "  |  " .. swingLabel
 	end
 	return fairLabel .. "  |  " .. swingLabel
 end
@@ -314,9 +314,6 @@ function menu.onReject(_, reason)
 end
 
 function menu.cleanup()
-	if menu.shown then
-		AddUITriggeredEvent("StockMarket", "close")
-	end
 	menu.shown = false
 	menu.infoFrame = nil
 	menu.refresh = nil
@@ -405,8 +402,8 @@ local function drawGraphWidget(frame, x, y, width, title, samples, refPrice, fai
 	if refPrice and refPrice > 0 then
 		local refColor = Color["text_warning"] or Color["text_normal"]
 		local refRecord = graph:addDataRecord({
-			markertype = "none",
-			markersize = 1,
+			markertype = "square",
+			markersize = 2,
 			markercolor = refColor,
 			linetype = "normal",
 			linewidth = 1,
@@ -555,12 +552,12 @@ function menu.display()
 			local trendStr, trendColor = stepTrendText(stock.step, stock.price)
 			row[3]:createText(trendStr, { halign = "right", color = trendColor })
 			local fStr, fColor = fairText(stock)
-			row[4]:createText(fStr, { halign = "right", color = fColor, mouseOverText = stockTooltip(stock) })
+			row[4]:createText(fStr, { halign = "right", color = fColor })
 			local buyQty = menu.resolveQty(stock, "buy")
 			local pay = unitCost(stock.price, true) * math.max(buyQty, 0)
 			row[5]:createButton({
 				active = buyQty > 0,
-				mouseOverText = ReadText(551001, 22) .. "  " .. moneyText(pay),
+				mouseOverText = ReadText(551001, 22) .. "  " .. moneyText(pay) .. "  |  " .. stockTooltip(stock),
 			}):setText(ReadText(551001, 10) .. " (" .. buyQty .. ")", { halign = "center" })
 			row[5].handlers.onClick = function ()
 				menu.trade("buy", stock.id)
@@ -601,7 +598,7 @@ function menu.display()
 			sumValue = sumValue + value
 			local pct, color = changeText(stock.avg, stock.price)
 			local row = holdings:addRow(true, { fixed = false })
-			row[1]:createText(stockName(stock.id), { mouseOverText = stockTooltip(stock) })
+			row[1]:createText(stockName(stock.id))
 			row[2]:createText(moneyText(stock.avg), { halign = "right" })
 			row[3]:createText(pct, { halign = "right", color = color })
 			row[4]:createText(moneyText(stock.price), { halign = "right" })
@@ -610,7 +607,7 @@ function menu.display()
 			local proceeds = unitCost(stock.price, false) * sellQty
 			row[6]:createButton({
 				active = sellQty > 0,
-				mouseOverText = ReadText(551001, 23) .. "  " .. moneyText(proceeds),
+				mouseOverText = ReadText(551001, 23) .. "  " .. moneyText(proceeds) .. "  |  " .. stockTooltip(stock),
 			}):setText(ReadText(551001, 11) .. " (" .. sellQty .. ")", { halign = "center" })
 			row[6].handlers.onClick = function ()
 				menu.trade("sell", stock.id)
@@ -662,14 +659,14 @@ function menu.display()
 		local fStr, fColor = fairText(stock)
 		local tip = stockTooltip(stock)
 		local row = market:addRow(true, { fixed = false })
-		row[1]:createText(stockName(stock.id), { mouseOverText = tip })
+		row[1]:createText(stockName(stock.id))
 		row[2]:createText(moneyText(stock.price), { halign = "right" })
 		row[3]:createText(trendStr, { halign = "right", color = trendColor })
-		row[4]:createText(fStr, { halign = "right", color = fColor, mouseOverText = tip })
+		row[4]:createText(fStr, { halign = "right", color = fColor })
 		row[5]:createText(qty > 0 and (moneyText(pay) .. " (" .. qty .. ")") or "-", { halign = "right" })
 		row[6]:createButton({
 			active = qty > 0,
-			mouseOverText = ReadText(551001, 22) .. "  " .. moneyText(pay),
+			mouseOverText = ReadText(551001, 22) .. "  " .. moneyText(pay) .. "  |  " .. tip,
 		}):setText(ReadText(551001, 10) .. " (" .. qty .. ")", { halign = "center" })
 		row[6].handlers.onClick = function ()
 			menu.trade("buy", stock.id)

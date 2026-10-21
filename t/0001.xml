@@ -20,8 +20,8 @@
     <t id="17">1% commission on buy and sell.</t>
     <t id="18">Not enough credits.</t>
     <t id="19">That order was refused.</t>
-    <t id="20">Portfolio \033#text_positive#+%1%%\033X (\033#text_positive#+%2 Cr\033X)</t>
-    <t id="21">Portfolio \033#text_negative#-%1%%\033X (\033#text_negative#-%2 Cr\033X)</t>
+    <t id="20">Portfolio \033#text_positive#+%1%% \(+%2 Cr\)\033X</t>
+    <t id="21">Portfolio \033#text_negative#-%1%% \(-%2 Cr\)\033X</t>
     <t id="22">You pay</t>
     <t id="23">You receive</t>
 
@@ -70,11 +70,11 @@
     <t id="86">High</t>
     <t id="87">Portfolio</t>
 
-    <t id="90">[WAR] %1 tumbled after a station was destroyed in %2.</t>
-    <t id="91">[WAR] %1 rallied after destroying a hostile station in %2.</t>
-    <t id="92">[WAR] %1 slipped after a capital ship loss in %2.</t>
-    <t id="93">[WAR] %1 surged as a hostile capital ship was destroyed in %2.</t>
-    <t id="94">[SALVAGE] Scale Plate Salvage climbed on fresh capital wreckage in %1.</t>
+    <t id="90">War: %1 tumbled after a station was destroyed in %2.</t>
+    <t id="91">War: %1 rallied after destroying a hostile station in %2.</t>
+    <t id="92">War: %1 slipped after a capital ship loss in %2.</t>
+    <t id="93">War: %1 surged as a hostile capital ship was destroyed in %2.</t>
+    <t id="94">Salvage: Scale Plate Salvage climbed on fresh capital wreckage in %1.</t>
     <t id="95">deep space</t>
 
     <t id="100">Fair value</t>

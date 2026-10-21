@@ -36,6 +36,7 @@
           <set_value name="md.$SM_MenuOpen" exact="true" />
           <set_value name="md.$SM_Notices" exact="true" />
           <set_value name="md.$SM_TickGen" exact="0" />
+          <set_value name="md.$SM_NotifyTicks" exact="0" />
           <set_value name="md.$SM_LastTotal" exact="0" />
           <set_value name="md.$SM_LastWarTime" exact="0s" />
           <set_value name="md.$SM_Headline" exact="''" />
@@ -82,6 +83,9 @@
         <do_if value="@md.$SM_TickGen == null">
           <set_value name="md.$SM_TickGen" exact="0" />
         </do_if>
+        <do_if value="@md.$SM_NotifyTicks == null">
+          <set_value name="md.$SM_NotifyTicks" exact="0" />
+        </do_if>
         <do_if value="@md.$SM_Stations != null">
           <remove_value name="md.$SM_Stations" />
         </do_if>
@@ -90,6 +94,9 @@
         </do_if>
         <do_if value="@md.$SM_PortHist != null">
           <remove_value name="md.$SM_PortHist" />
+        </do_if>
+        <do_if value="@md.$SM_FairSeeded != true">
+          <include_actions ref="SM_SeedAllFair" />
         </do_if>
       </actions>
     </library>
@@ -176,13 +183,8 @@
       </actions>
     </library>
 
-    <library name="SM_MacroScan">
+    <library name="SM_ScanOne">
       <actions>
-        <set_value name="md.$SM_ScanIdx" exact="(md.$SM_ScanIdx + 1)i" />
-        <do_if value="md.$SM_ScanIdx gt 14">
-          <set_value name="md.$SM_ScanIdx" exact="1" />
-        </do_if>
-        <set_value name="$sIdx" exact="md.$SM_ScanIdx" />
         <set_value name="$stCount" exact="0" />
         <set_value name="$oldBase" exact="(md.$SM_BaseSt.{$sIdx})i" />
         <set_value name="$targetFair" exact="(md.$SM_FairValue.{$sIdx})i" />
@@ -192,60 +194,66 @@
           <set_value name="$stCount" exact="@$sts.count" />
           <remove_value name="$sts" />
           <do_if value="$oldBase le 0 and $stCount gt 0">
-            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
-            <set_value name="$oldBase" exact="$stCount" />
+            <set_value name="$oldBase" exact="(($stCount * 90) / 100)i" />
+            <do_if value="$oldBase lt 1"><set_value name="$oldBase" exact="1" /></do_if>
+            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$oldBase" />
           </do_if>
-          <set_value name="$targetFair" exact="(100 + (($stCount - $oldBase) * 3))i" />
+          <set_value name="$targetFair" exact="(94 + (($stCount - $oldBase) * 3) + ($stCount % 11))i" />
         </do_if>
         <do_elseif value="$sIdx == 2 and @faction.antigone != null">
           <find_station name="$sts" space="player.galaxy" owner="faction.antigone" multiple="true" />
           <set_value name="$stCount" exact="@$sts.count" />
           <remove_value name="$sts" />
           <do_if value="$oldBase le 0 and $stCount gt 0">
-            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
-            <set_value name="$oldBase" exact="$stCount" />
+            <set_value name="$oldBase" exact="(($stCount * 94) / 100)i" />
+            <do_if value="$oldBase lt 1"><set_value name="$oldBase" exact="1" /></do_if>
+            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$oldBase" />
           </do_if>
-          <set_value name="$targetFair" exact="(100 + (($stCount - $oldBase) * 3))i" />
+          <set_value name="$targetFair" exact="(91 + (($stCount - $oldBase) * 3) + ($stCount % 9))i" />
         </do_elseif>
         <do_elseif value="$sIdx == 3 and @faction.teladi != null">
           <find_station name="$sts" space="player.galaxy" owner="faction.teladi" multiple="true" />
           <set_value name="$stCount" exact="@$sts.count" />
           <remove_value name="$sts" />
           <do_if value="$oldBase le 0 and $stCount gt 0">
-            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
-            <set_value name="$oldBase" exact="$stCount" />
+            <set_value name="$oldBase" exact="(($stCount * 88) / 100)i" />
+            <do_if value="$oldBase lt 1"><set_value name="$oldBase" exact="1" /></do_if>
+            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$oldBase" />
           </do_if>
-          <set_value name="$targetFair" exact="(102 + (($stCount - $oldBase) * 2))i" />
+          <set_value name="$targetFair" exact="(102 + (($stCount - $oldBase) * 2) + ($stCount % 7))i" />
         </do_elseif>
         <do_elseif value="$sIdx == 4 and @faction.ministry != null">
           <find_station name="$sts" space="player.galaxy" owner="faction.ministry" multiple="true" />
           <set_value name="$stCount" exact="@$sts.count" />
           <remove_value name="$sts" />
           <do_if value="$oldBase le 0 and $stCount gt 0">
-            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
-            <set_value name="$oldBase" exact="$stCount" />
+            <set_value name="$oldBase" exact="(($stCount * 92) / 100)i" />
+            <do_if value="$oldBase lt 1"><set_value name="$oldBase" exact="1" /></do_if>
+            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$oldBase" />
           </do_if>
-          <set_value name="$targetFair" exact="(100 + (($stCount - $oldBase) * 4))i" />
+          <set_value name="$targetFair" exact="(96 + (($stCount - $oldBase) * 4) + ($stCount % 5))i" />
         </do_elseif>
         <do_elseif value="$sIdx == 5 and @faction.paranid != null">
           <find_station name="$sts" space="player.galaxy" owner="faction.paranid" multiple="true" />
           <set_value name="$stCount" exact="@$sts.count" />
           <remove_value name="$sts" />
           <do_if value="$oldBase le 0 and $stCount gt 0">
-            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
-            <set_value name="$oldBase" exact="$stCount" />
+            <set_value name="$oldBase" exact="(($stCount * 90) / 100)i" />
+            <do_if value="$oldBase lt 1"><set_value name="$oldBase" exact="1" /></do_if>
+            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$oldBase" />
           </do_if>
-          <set_value name="$targetFair" exact="(100 + (($stCount - $oldBase) * 3))i" />
+          <set_value name="$targetFair" exact="(98 + (($stCount - $oldBase) * 3) + ($stCount % 8))i" />
         </do_elseif>
         <do_elseif value="$sIdx == 6 and @faction.holyorder != null">
           <find_station name="$sts" space="player.galaxy" owner="faction.holyorder" multiple="true" />
           <set_value name="$stCount" exact="@$sts.count" />
           <remove_value name="$sts" />
           <do_if value="$oldBase le 0 and $stCount gt 0">
-            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
-            <set_value name="$oldBase" exact="$stCount" />
+            <set_value name="$oldBase" exact="(($stCount * 95) / 100)i" />
+            <do_if value="$oldBase lt 1"><set_value name="$oldBase" exact="1" /></do_if>
+            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$oldBase" />
           </do_if>
-          <set_value name="$targetFair" exact="(100 + (($stCount - $oldBase) * 3))i" />
+          <set_value name="$targetFair" exact="(92 + (($stCount - $oldBase) * 3) + ($stCount % 9))i" />
         </do_elseif>
         <do_elseif value="$sIdx == 7">
           <do_if value="@faction.split != null">
@@ -253,20 +261,22 @@
             <set_value name="$stCount" exact="@$sts.count" />
             <remove_value name="$sts" />
             <do_if value="$oldBase le 0 and $stCount gt 0">
-              <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
-              <set_value name="$oldBase" exact="$stCount" />
+              <set_value name="$oldBase" exact="(($stCount * 96) / 100)i" />
+              <do_if value="$oldBase lt 1"><set_value name="$oldBase" exact="1" /></do_if>
+              <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$oldBase" />
             </do_if>
-            <set_value name="$targetFair" exact="(98 + (($stCount - $oldBase) * 3))i" />
+            <set_value name="$targetFair" exact="(88 + (($stCount - $oldBase) * 3) + ($stCount % 11))i" />
           </do_if>
           <do_elseif value="@faction.xenon != null">
             <find_station name="$sts" space="player.galaxy" owner="faction.xenon" multiple="true" />
             <set_value name="$stCount" exact="@$sts.count" />
             <remove_value name="$sts" />
             <do_if value="$oldBase le 0 and $stCount gt 0">
-              <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
-              <set_value name="$oldBase" exact="$stCount" />
+              <set_value name="$oldBase" exact="(($stCount * 95) / 100)i" />
+              <do_if value="$oldBase lt 1"><set_value name="$oldBase" exact="1" /></do_if>
+              <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$oldBase" />
             </do_if>
-            <set_value name="$targetFair" exact="(98 - (($stCount - $oldBase) * 3))i" />
+            <set_value name="$targetFair" exact="(95 - (($stCount - $oldBase) * 3) - ($stCount % 7))i" />
           </do_elseif>
         </do_elseif>
         <do_elseif value="$sIdx == 8 and @faction.hatikvah != null">
@@ -274,35 +284,37 @@
           <set_value name="$stCount" exact="@$sts.count" />
           <remove_value name="$sts" />
           <do_if value="$oldBase le 0 and $stCount gt 0">
-            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
-            <set_value name="$oldBase" exact="$stCount" />
+            <set_value name="$oldBase" exact="(($stCount * 90) / 100)i" />
+            <do_if value="$oldBase lt 1"><set_value name="$oldBase" exact="1" /></do_if>
+            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$oldBase" />
           </do_if>
-          <set_value name="$targetFair" exact="(100 + (($stCount - $oldBase) * 5))i" />
+          <set_value name="$targetFair" exact="(89 + (($stCount - $oldBase) * 5) + ($stCount % 7))i" />
         </do_elseif>
         <do_elseif value="$sIdx == 9">
-          <set_value name="$targetFair" exact="((md.$SM_FairValue.{1} + md.$SM_FairValue.{3}) / 2)i" />
+          <set_value name="$targetFair" exact="(((md.$SM_FairValue.{1} + md.$SM_FairValue.{3}) / 2) + 3)i" />
         </do_elseif>
         <do_elseif value="$sIdx == 10">
-          <set_value name="$targetFair" exact="((md.$SM_FairValue.{3} + md.$SM_FairValue.{4}) / 2)i" />
+          <set_value name="$targetFair" exact="(((md.$SM_FairValue.{3} + md.$SM_FairValue.{4}) / 2) + 4)i" />
         </do_elseif>
         <do_elseif value="$sIdx == 11">
-          <set_value name="$targetFair" exact="((md.$SM_FairValue.{3} + md.$SM_FairValue.{5}) / 2 + 2)i" />
+          <set_value name="$targetFair" exact="(((md.$SM_FairValue.{3} + md.$SM_FairValue.{5}) / 2) + 2)i" />
         </do_elseif>
         <do_elseif value="$sIdx == 12">
-          <set_value name="$targetFair" exact="(100 + ((md.$SM_FairValue.{1} + md.$SM_FairValue.{2} - (md.$SM_FairValue.{6} * 2)) / 2))i" />
+          <set_value name="$targetFair" exact="(96 + ((md.$SM_FairValue.{1} + md.$SM_FairValue.{2} - (md.$SM_FairValue.{6} * 2)) / 2))i" />
         </do_elseif>
         <do_elseif value="$sIdx == 13">
-          <set_value name="$targetFair" exact="((md.$SM_FairValue.{1} + md.$SM_FairValue.{2}) / 2)i" />
+          <set_value name="$targetFair" exact="(((md.$SM_FairValue.{1} + md.$SM_FairValue.{2}) / 2) - 2)i" />
         </do_elseif>
         <do_elseif value="$sIdx == 14 and @faction.xenon != null">
           <find_station name="$sts" space="player.galaxy" owner="faction.xenon" multiple="true" />
           <set_value name="$stCount" exact="@$sts.count" />
           <remove_value name="$sts" />
           <do_if value="$oldBase le 0 and $stCount gt 0">
-            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
-            <set_value name="$oldBase" exact="$stCount" />
+            <set_value name="$oldBase" exact="(($stCount * 92) / 100)i" />
+            <do_if value="$oldBase lt 1"><set_value name="$oldBase" exact="1" /></do_if>
+            <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$oldBase" />
           </do_if>
-          <set_value name="$targetFair" exact="(100 + (($stCount - $oldBase) * 3))i" />
+          <set_value name="$targetFair" exact="(92 + (($stCount - $oldBase) * 3) + ($stCount % 9))i" />
         </do_elseif>
 
         <do_if value="$targetFair lt 55">
@@ -312,14 +324,45 @@
           <set_value name="$targetFair" exact="210" />
         </do_if>
 
-        <set_value name="$curFair" exact="(md.$SM_FairValue.{$sIdx})i" />
-        <do_if value="$targetFair gt $curFair">
-          <set_value name="md.$SM_FairValue.{$sIdx}" exact="($curFair + 1 + (($targetFair - $curFair) / 4))i" />
+        <do_if value="@$instantFair == true">
+          <set_value name="md.$SM_FairValue.{$sIdx}" exact="$targetFair" />
         </do_if>
-        <do_elseif value="$targetFair lt $curFair">
-          <set_value name="md.$SM_FairValue.{$sIdx}" exact="($curFair - 1 - (($curFair - $targetFair) / 4))i" />
-        </do_elseif>
+        <do_else>
+          <set_value name="$curFair" exact="(md.$SM_FairValue.{$sIdx})i" />
+          <do_if value="$targetFair gt $curFair">
+            <set_value name="md.$SM_FairValue.{$sIdx}" exact="($curFair + 1 + (($targetFair - $curFair) / 3))i" />
+          </do_if>
+          <do_elseif value="$targetFair lt $curFair">
+            <set_value name="md.$SM_FairValue.{$sIdx}" exact="($curFair - 1 - (($curFair - $targetFair) / 3))i" />
+          </do_elseif>
+        </do_else>
+      </actions>
+    </library>
+
+    <library name="SM_MacroScan">
+      <actions>
+        <set_value name="md.$SM_ScanIdx" exact="(md.$SM_ScanIdx + 1)i" />
+        <do_if value="md.$SM_ScanIdx gt 14">
+          <set_value name="md.$SM_ScanIdx" exact="1" />
+        </do_if>
+        <set_value name="$sIdx" exact="md.$SM_ScanIdx" />
+        <set_value name="$instantFair" exact="false" />
+        <include_actions ref="SM_ScanOne" />
         <include_actions ref="SM_ClampFair" />
+      </actions>
+    </library>
+
+    <library name="SM_SeedAllFair">
+      <actions>
+        <set_value name="md.$SM_BaseSt" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
+        <set_value name="$instantFair" exact="true" />
+        <do_all exact="14" counter="$k">
+          <set_value name="$sIdx" exact="$k" />
+          <include_actions ref="SM_ScanOne" />
+        </do_all>
+        <set_value name="$instantFair" exact="false" />
+        <include_actions ref="SM_ClampFair" />
+        <set_value name="md.$SM_FairSeeded" exact="true" />
       </actions>
     </library>
 
@@ -349,6 +392,7 @@
       </conditions>
       <actions>
         <include_actions ref="SM_InitGlobals" />
+        <include_actions ref="SM_Publish" />
       </actions>
     </cue>
 
@@ -434,7 +478,7 @@
             <include_actions ref="SM_InitGlobals" />
 
             <set_value name="md.$SM_MacroTicks" exact="(md.$SM_MacroTicks + 1)i" />
-            <do_if value="md.$SM_MacroTicks ge 6">
+            <do_if value="md.$SM_MacroTicks ge 2">
               <set_value name="md.$SM_MacroTicks" exact="0" />
               <include_actions ref="SM_MacroScan" />
             </do_if>
@@ -579,21 +623,34 @@
             </do_if>
 
             <include_actions ref="SM_Sum" />
-            <set_value name="$before" exact="(md.$SM_LastTotal)i" />
             <set_value name="$after" exact="(md.$SM_ValueScratch)i" />
-            <do_if value="md.$SM_Notices != false and md.$SM_Owned gt 0 and $before gt 0 and $after != $before">
-              <set_value name="$delta" exact="($after - $before)i" />
-              <set_value name="$pct" exact="(($delta * 100) / $before)i" />
-              <set_value name="$absDelta" exact="if $delta gt 0 then $delta else -$delta" />
-              <set_value name="$absPct" exact="if $pct gt 0 then $pct else -$pct" />
-              <do_if value="$delta gt 0">
-                <show_notification text="{551001,20}.[$absPct, $absDelta]" sound="ui_mon_eve_money_up" />
-              </do_if>
-              <do_else>
-                <show_notification text="{551001,21}.[$absPct, $absDelta]" sound="ui_mon_eve_money_down" />
-              </do_else>
+            <do_if value="md.$SM_Owned le 0">
+              <set_value name="md.$SM_LastTotal" exact="0" />
+              <set_value name="md.$SM_NotifyTicks" exact="0" />
             </do_if>
-            <set_value name="md.$SM_LastTotal" exact="$after" />
+            <do_else>
+              <do_if value="md.$SM_LastTotal le 0">
+                <set_value name="md.$SM_LastTotal" exact="$after" />
+              </do_if>
+              <set_value name="md.$SM_NotifyTicks" exact="(md.$SM_NotifyTicks + 1)i" />
+              <do_if value="md.$SM_NotifyTicks ge 6">
+                <set_value name="md.$SM_NotifyTicks" exact="0" />
+                <set_value name="$before" exact="(md.$SM_LastTotal)i" />
+                <do_if value="md.$SM_Notices != false and $before gt 0 and $after != $before">
+                  <set_value name="$delta" exact="($after - $before)i" />
+                  <set_value name="$pct" exact="(($delta * 100) / $before)i" />
+                  <set_value name="$absDelta" exact="if $delta gt 0 then $delta else -$delta" />
+                  <set_value name="$absPct" exact="if $pct gt 0 then $pct else -$pct" />
+                  <do_if value="$delta gt 0">
+                    <show_notification text="{551001,20}.[$absPct, $absDelta]" sound="ui_mon_eve_money_up" />
+                  </do_if>
+                  <do_else>
+                    <show_notification text="{551001,21}.[$absPct, $absDelta]" sound="ui_mon_eve_money_down" />
+                  </do_else>
+                </do_if>
+                <set_value name="md.$SM_LastTotal" exact="$after" />
+              </do_if>
+            </do_else>
             <set_value name="md.$SM_TickGen" exact="(md.$SM_TickGen + 1)i" />
             <do_if value="md.$SM_MenuOpen != false">
               <include_actions ref="SM_Publish" />
@@ -663,7 +720,7 @@
                     <set_value name="md.$SM_Avg.{$idx}" exact="((($oldAvg * $oldShares) + ($price * $qty)) / $newShares)i" />
                     <set_value name="md.$SM_Shares.{$idx}" exact="$newShares" />
                     <include_actions ref="SM_Sum" />
-                    <set_value name="md.$SM_LastTotal" exact="md.$SM_ValueScratch" />
+                    <set_value name="md.$SM_LastTotal" exact="(md.$SM_LastTotal + ($price * $qty))i" />
                     <include_actions ref="SM_Publish" />
                   </do_else>
                 </do_if>
@@ -683,7 +740,16 @@
                       <set_value name="md.$SM_Avg.{$idx}" exact="0" />
                     </do_if>
                     <include_actions ref="SM_Sum" />
-                    <set_value name="md.$SM_LastTotal" exact="md.$SM_ValueScratch" />
+                    <do_if value="md.$SM_Owned le 0">
+                      <set_value name="md.$SM_LastTotal" exact="0" />
+                      <set_value name="md.$SM_NotifyTicks" exact="0" />
+                    </do_if>
+                    <do_else>
+                      <set_value name="md.$SM_LastTotal" exact="(md.$SM_LastTotal - ($price * $qty))i" />
+                      <do_if value="md.$SM_LastTotal lt 1">
+                        <set_value name="md.$SM_LastTotal" exact="md.$SM_ValueScratch" />
+                      </do_if>
+                    </do_else>
                     <include_actions ref="SM_Publish" />
                   </do_else>
                 </do_elseif>
