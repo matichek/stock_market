@@ -1,6 +1,6 @@
 -- Stock Market exchange menu.
 -- State arrives from Mission Director as:
---   id,price,shares,avg,step;...||headline||notices||gen
+--   id,price,shares,avg,step,fair,swing,beta,hist;...||headline||notices||gen||portHist
 
 local menu = {
 	name = "StockMarketMenu",
@@ -37,6 +37,23 @@ local STOCK_TEXT = {
 	second_contact = 41,
 	black_hole_mining = 42,
 	scale_plate = 43,
+}
+
+local STOCK_DESC = {
+	argon_yards = 130,
+	antigone_works = 131,
+	teladi_profit = 132,
+	ministry_ledger = 133,
+	paranid_lattice = 134,
+	pontifex_reliquary = 135,
+	zyarth_steel = 136,
+	hatikvah_haul = 137,
+	eighteen_freight = 138,
+	grand_exchange = 139,
+	nopileos_ore = 40 + 100,
+	second_contact = 141,
+	black_hole_mining = 142,
+	scale_plate = 143,
 }
 
 local function requestRefresh()
@@ -117,6 +134,32 @@ local function stepTrendText(step, price)
 	return "0% (" .. baseStr .. ")", Color["text_normal"]
 end
 
+local function fairText(stock)
+	local fair = math.floor((stock.fair or 100) + 0.5)
+	local price = math.floor((stock.price or 100) + 0.5)
+	local diff = fair - price
+	if diff >= 6 then
+		return moneyText(fair) .. " (" .. ReadText(551001, 101) .. ")", Color["text_positive"]
+	elseif diff <= -6 then
+		return moneyText(fair) .. " (" .. ReadText(551001, 102) .. ")", Color["text_negative"]
+	end
+	return moneyText(fair), Color["text_normal"]
+end
+
+local function stockTooltip(stock)
+	if not stock then
+		return ""
+	end
+	local descId = STOCK_DESC[stock.id]
+	local desc = descId and ReadText(551001, descId) or ""
+	local fairLabel = ReadText(551001, 100) .. ": " .. moneyText(stock.fair or 100)
+	local swingLabel = ReadText(551001, 104) .. ": " .. tostring(stock.swing or 2) .. "/4  |  " .. ReadText(551001, 105) .. ": " .. tostring(stock.beta or 100) .. "%"
+	if desc ~= "" then
+		return desc .. "\n" .. fairLabel .. "  |  " .. swingLabel
+	end
+	return fairLabel .. "  |  " .. swingLabel
+end
+
 local function findStock(id)
 	for _, stock in ipairs(menu.stocks) do
 		if stock.id == id then
@@ -165,13 +208,32 @@ function menu.trade(side, id)
 	AddUITriggeredEvent("StockMarket", side .. "_" .. id, qty)
 end
 
+local function parseSeries(str)
+	local out = {}
+	if not str or str == "" then
+		return out
+	end
+	for val in tostring(str):gmatch("[^:]+") do
+		local num = tonumber(val)
+		if num then
+			table.insert(out, math.floor(num + 0.5))
+		end
+	end
+	return out
+end
+
 function menu.parse(blob)
 	blob = tostring(blob or "")
-	local body, headline, notices, gen = blob:match("^(.-)||(.*)||([01])||([%-%d%.]+)$")
+	local body, headline, notices, gen, portHistStr = blob:match("^(.-)||(.*)||([01])||([%-%d%.]+)||(.*)$")
+	if not body then
+		body, headline, notices, gen = blob:match("^(.-)||(.*)||([01])||([%-%d%.]+)$")
+		portHistStr = nil
+	end
 	if not body then
 		body, headline = blob:match("^(.-)||(.*)$")
 		notices = "1"
 		gen = nil
+		portHistStr = nil
 	end
 	if not body then
 		body = blob
@@ -182,19 +244,36 @@ function menu.parse(blob)
 	menu.pendingGen = gen and math.floor((tonumber(gen) or 0) + 0.5) or nil
 	menu.stocks = {}
 	for rec in body:gmatch("[^;]+") do
-		local id, price, shares, avg, step = rec:match("([^,]+),([^,]+),([^,]+),([^,]+),([^,]+)")
+		local id, price, shares, avg, step, fair, swing, beta, histStr = rec:match("([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]*)")
+		if not id then
+			id, price, shares, avg, step = rec:match("([^,]+),([^,]+),([^,]+),([^,]+),([^,]+)")
+		end
 		if not id then
 			id, price, shares, avg = rec:match("([^,]+),([^,]+),([^,]+),([^,]+)")
 			step = "0"
 		end
 		if id then
-			table.insert(menu.stocks, {
+			local stockObj = {
 				id = id,
 				price = math.floor((tonumber(price) or 0) + 0.5),
 				shares = math.floor((tonumber(shares) or 0) + 0.5),
 				avg = math.floor((tonumber(avg) or 0) + 0.5),
 				step = math.floor((tonumber(step) or 0) + 0.5),
-			})
+				fair = math.floor((tonumber(fair) or 100) + 0.5),
+				swing = math.floor((tonumber(swing) or 2) + 0.5),
+				beta = math.floor((tonumber(beta) or 100) + 0.5),
+			}
+			table.insert(menu.stocks, stockObj)
+			local parsedHist = parseSeries(histStr)
+			if #parsedHist > 0 then
+				menu.history[id] = parsedHist
+			end
+		end
+	end
+	if portHistStr ~= nil then
+		local parsedPort = parseSeries(portHistStr)
+		if #parsedPort > 0 then
+			menu.portHistory = parsedPort
 		end
 	end
 end
@@ -209,31 +288,20 @@ function menu.record()
 	local total, owned = 0, 0
 	for _, stock in ipairs(menu.stocks) do
 		local series = menu.history[stock.id]
-		if not series then
+		if not series or #series == 0 then
 			series = {}
 			menu.history[stock.id] = series
-		end
-		if #series == 0 then
 			local prev = math.max(40, math.min(250, math.floor(stock.price / (1 + (stock.step or 0) / 100) + 0.5)))
 			table.insert(series, prev)
-		end
-		table.insert(series, stock.price)
-		while #series > 24 do
-			table.remove(series, 1)
+			table.insert(series, stock.price)
 		end
 		if stock.shares > 0 then
 			total = total + stock.price * stock.shares
 			owned = owned + 1
 		end
 	end
-	if owned > 0 then
-		if #menu.portHistory == 0 then
-			table.insert(menu.portHistory, total)
-		end
+	if owned > 0 and #menu.portHistory == 0 then
 		table.insert(menu.portHistory, total)
-		while #menu.portHistory > 24 do
-			table.remove(menu.portHistory, 1)
-		end
 	end
 end
 
@@ -254,6 +322,9 @@ function menu.onReject(_, reason)
 end
 
 function menu.cleanup()
+	if menu.shown then
+		AddUITriggeredEvent("StockMarket", "close")
+	end
 	menu.shown = false
 	menu.infoFrame = nil
 	menu.refresh = nil
@@ -281,14 +352,14 @@ local headerText = {
 	font = Helper.standardFontBold,
 }
 
-local function drawGraphWidget(frame, x, y, width, title, samples)
+local function drawGraphWidget(frame, x, y, width, title, samples, refPrice, fairPrice)
 	local chartTable = frame:addTable(1, { tabOrder = 4, width = width, x = x, y = y, reserveScrollBar = false, highlightMode = "off" })
 	local row = chartTable:addRow(false, { fixed = true })
 	local height = Helper.scaleY(150)
 
 	local pts = {}
 	if samples and #samples > 0 then
-		for i, v in ipairs(samples) do
+		for _, v in ipairs(samples) do
 			table.insert(pts, v)
 		end
 	else
@@ -302,6 +373,10 @@ local function drawGraphWidget(frame, x, y, width, title, samples)
 	for _, v in ipairs(pts) do
 		if v < low then low = v end
 		if v > high then high = v end
+	end
+	if refPrice and refPrice > 0 then
+		if refPrice < low then low = refPrice end
+		if refPrice > high then high = refPrice end
 	end
 	local span = math.max(high - low, 4)
 	local granularity = math.max(1, math.ceil(span / 4))
@@ -318,12 +393,37 @@ local function drawGraphWidget(frame, x, y, width, title, samples)
 		lineColor = Color["text_negative"]
 	end
 
-	local graphTitle = title .. "   (" .. ReadText(551001, 85) .. ": " .. moneyText(low) .. "  |  " .. ReadText(551001, 86) .. ": " .. moneyText(high) .. ")"
+	local graphTitle = title .. "   (" .. ReadText(551001, 85) .. ": " .. moneyText(low) .. "  |  " .. ReadText(551001, 86) .. ": " .. moneyText(high)
+	if fairPrice and fairPrice > 0 then
+		graphTitle = graphTitle .. "  |  " .. ReadText(551001, 100) .. ": " .. moneyText(fairPrice)
+	end
+	if refPrice and refPrice > 0 then
+		graphTitle = graphTitle .. "  |  " .. ReadText(551001, 103) .. ": " .. moneyText(refPrice)
+	end
+	graphTitle = graphTitle .. ")"
+
 	local graph = row[1]:createGraph({
 		width = width,
 		height = height,
 		scaling = false,
 	}):setTitle(graphTitle, { font = Helper.standardFontBold, fontsize = Helper.scaleFont(Helper.standardFontBold, Helper.standardFontSize) })
+
+	local n = #pts
+
+	if refPrice and refPrice > 0 then
+		local refColor = Color["text_warning"] or Color["text_normal"]
+		local refRecord = graph:addDataRecord({
+			markertype = "none",
+			markersize = 1,
+			markercolor = refColor,
+			linetype = "normal",
+			linewidth = 1,
+			linecolor = refColor,
+		})
+		for i = 1, n do
+			refRecord:addData(i - n, refPrice)
+		end
+	end
 
 	local record = graph:addDataRecord({
 		markertype = "square",
@@ -334,7 +434,6 @@ local function drawGraphWidget(frame, x, y, width, title, samples)
 		linecolor = lineColor,
 	})
 
-	local n = #pts
 	for i, val in ipairs(pts) do
 		record:addData(i - n, val)
 	end
@@ -361,11 +460,11 @@ end
 
 local function setColumns(ftable)
 	-- Leave column 1 dynamic so X4 table column finalization never errors
-	ftable:setColWidthPercent(2, 14)
-	ftable:setColWidthPercent(3, 16)
-	ftable:setColWidthPercent(4, 14)
+	ftable:setColWidthPercent(2, 13)
+	ftable:setColWidthPercent(3, 15)
+	ftable:setColWidthPercent(4, 16)
 	ftable:setColWidthPercent(5, 14)
-	ftable:setColWidthPercent(6, 14)
+	ftable:setColWidthPercent(6, 13)
 end
 
 function menu.display()
@@ -439,44 +538,46 @@ function menu.display()
 		end
 		local selected = findStock(menu.graphId) or menu.stocks[1]
 		local series = selected and menu.history[selected.id] or {}
-		local priceChart = drawGraphWidget(frame, x, y, width, selected and stockName(selected.id) or ReadText(551001, 80), series)
+		local refAvg = (selected and selected.shares > 0 and selected.avg > 0) and selected.avg or nil
+		local fairVal = selected and selected.fair or nil
+		local priceChart = drawGraphWidget(frame, x, y, width, selected and stockName(selected.id) or ReadText(551001, 80), series, refAvg, fairVal)
 		y = priceChart.properties.y + priceChart:getFullHeight() + Helper.borderSize
-		local portChart = drawGraphWidget(frame, x, y, width, ReadText(551001, 87), menu.portHistory)
+		local portChart = drawGraphWidget(frame, x, y, width, ReadText(551001, 87), menu.portHistory, nil, nil)
 		y = portChart.properties.y + portChart:getFullHeight() + Helper.borderSize
 
-		local picker = frame:addTable(5, { tabOrder = 5, width = width, x = x, y = y, maxVisibleHeight = math.max(Helper.scaleY(160), Helper.viewHeight - y - Helper.frameBorder), highlightMode = "off" })
-		picker:setColWidthPercent(2, 16)
-		picker:setColWidthPercent(3, 16)
-		picker:setColWidthPercent(4, 16)
-		picker:setColWidthPercent(5, 16)
+		local picker = frame:addTable(6, { tabOrder = 5, width = width, x = x, y = y, maxVisibleHeight = math.max(Helper.scaleY(160), Helper.viewHeight - y - Helper.frameBorder), highlightMode = "off" })
+		setColumns(picker)
 		for _, stock in ipairs(menu.stocks) do
 			local picked = selected and stock.id == selected.id
 			local row = picker:addRow(true, { fixed = false })
 			row[1]:createButton({
 				active = true,
 				bgColor = picked and Color["row_background_selected"] or Color["button_background_default"],
+				mouseOverText = stockTooltip(stock),
 			}):setText((picked and "[ " .. stockName(stock.id) .. " ]" or stockName(stock.id)), { halign = "left" })
 			row[1].handlers.onClick = function ()
 				menu.graphId = stock.id
 				requestRefresh()
 			end
+			row[2]:createText(moneyText(stock.price), { halign = "right" })
 			local trendStr, trendColor = stepTrendText(stock.step, stock.price)
-			row[2]:createText(trendStr, { halign = "right", color = trendColor })
-			row[3]:createText(moneyText(stock.price), { halign = "right" })
+			row[3]:createText(trendStr, { halign = "right", color = trendColor })
+			local fStr, fColor = fairText(stock)
+			row[4]:createText(fStr, { halign = "right", color = fColor, mouseOverText = stockTooltip(stock) })
 			local buyQty = menu.resolveQty(stock, "buy")
 			local pay = unitCost(stock.price, true) * math.max(buyQty, 0)
-			row[4]:createButton({
+			row[5]:createButton({
 				active = buyQty > 0,
 				mouseOverText = ReadText(551001, 22) .. "  " .. moneyText(pay),
 			}):setText(ReadText(551001, 10) .. " (" .. buyQty .. ")", { halign = "center" })
-			row[4].handlers.onClick = function ()
+			row[5].handlers.onClick = function ()
 				menu.trade("buy", stock.id)
 			end
 			local sellQty = menu.resolveQty(stock, "sell")
-			row[5]:createButton({
+			row[6]:createButton({
 				active = sellQty > 0,
 			}):setText(ReadText(551001, 11) .. " (" .. sellQty .. ")", { halign = "center" })
-			row[5].handlers.onClick = function ()
+			row[6].handlers.onClick = function ()
 				menu.trade("sell", stock.id)
 			end
 		end
@@ -508,7 +609,7 @@ function menu.display()
 			sumValue = sumValue + value
 			local pct, color = changeText(stock.avg, stock.price)
 			local row = holdings:addRow(true, { fixed = false })
-			row[1]:createText(stockName(stock.id))
+			row[1]:createText(stockName(stock.id), { mouseOverText = stockTooltip(stock) })
 			row[2]:createText(moneyText(stock.avg), { halign = "right" })
 			row[3]:createText(pct, { halign = "right", color = color })
 			row[4]:createText(moneyText(stock.price), { halign = "right" })
@@ -558,18 +659,22 @@ function menu.display()
 	marketHead[1]:createText(ReadText(551001, 4), headerText)
 	marketHead[2]:createText(ReadText(551001, 7), headerText)
 	marketHead[3]:createText(ReadText(551001, 6), headerText)
-	marketHead[4]:setColSpan(2):createText(ReadText(551001, 22), headerText)
+	marketHead[4]:createText(ReadText(551001, 100), headerText)
+	marketHead[5]:createText(ReadText(551001, 22), headerText)
 	marketHead[6]:createText("", headerText)
 
 	for _, stock in ipairs(menu.stocks) do
 		local qty = menu.resolveQty(stock, "buy")
 		local pay = unitCost(stock.price, true) * math.max(qty, 0)
 		local trendStr, trendColor = stepTrendText(stock.step, stock.price)
+		local fStr, fColor = fairText(stock)
+		local tip = stockTooltip(stock)
 		local row = market:addRow(true, { fixed = false })
-		row[1]:createText(stockName(stock.id))
+		row[1]:createText(stockName(stock.id), { mouseOverText = tip })
 		row[2]:createText(moneyText(stock.price), { halign = "right" })
 		row[3]:createText(trendStr, { halign = "right", color = trendColor })
-		row[4]:setColSpan(2):createText(qty > 0 and (moneyText(pay) .. " (" .. qty .. ")") or "-", { halign = "right" })
+		row[4]:createText(fStr, { halign = "right", color = fColor, mouseOverText = tip })
+		row[5]:createText(qty > 0 and (moneyText(pay) .. " (" .. qty .. ")") or "-", { halign = "right" })
 		row[6]:createButton({
 			active = qty > 0,
 			mouseOverText = ReadText(551001, 22) .. "  " .. moneyText(pay),

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<content id="stock_market" name="Stock Market" description="Buy in-universe stocks with credits. Prices move every 10 seconds. Your holdings show the price you paid, the change since then, and the new price." author="stock_market" version="100" date="2026-09-26" enabled="1" save="1">
-  <text language="44" name="Stock Market" description="Buy in-universe stocks with credits. Prices move every 10 seconds. Your holdings show the price you paid, the change since then, and the new price." />
+<content id="stock_market" name="Stock Market" description="Buy in-universe stocks with credits. Prices move every 10 seconds and react to real station and capital ship wars. Your holdings show the price you paid, the change since then, Fair Value, and persistent charts." author="stock_market" version="200" date="2026-10-21" enabled="1" save="1">
+  <text language="44" name="Stock Market" description="Buy in-universe stocks with credits. Prices move every 10 seconds and react to real station and capital ship wars. Your holdings show the price you paid, the change since then, Fair Value, and persistent charts." />
   <dependency version="700" />
 </content>

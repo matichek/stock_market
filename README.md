@@ -1,8 +1,8 @@
 # Stock Market
 
-A mod for **X4: Foundations** (base game). It adds a small private exchange where you buy and sell fictional companies with the credits you already have. The companies are named after the X4 setting. They are not live factions, stations, or wares, and they do not change the economy.
+A mod for **X4: Foundations** (base game). It adds a small private exchange where you buy and sell 14 in-universe companies with the credits you already have. Companies react to live station counts, station destructions, and capital ship battles in your galaxy.
 
-Prices move every 10 seconds of game time, including while you are flying. Pause freezes them. The book is stored in your save.
+Prices move every 10 seconds of game time, including while you are flying. Pause freezes them. Your holdings, fundamentals, and 24-tick price charts are stored in your save.
 
 Needs X4 Foundations 7.00 or newer. No DLC and no other mods are required. The text is English.
 
@@ -30,25 +30,19 @@ Needs X4 Foundations 7.00 or newer. No DLC and no other mods are required. The t
 
 The **Sum** row adds what you paid and what the book is worth now.
 
-**Available** lists the companies you can buy. Set the amount to **1**, **10**, **100**, or **Max**, then Buy or Sell. The button shows the share count it will trade, for example `Buy (10)`. Sell never sells more shares than you hold. Max spends as much cash as that company can take.
+**Available** lists the companies you can buy, along with each company's live **Fair value** (`Low` in green when the stock is trading well below its fundamental value, `High` in red when trading well above). Hover any company name or Fair Value to see which faction/stations drive it, its current volatility (`Swing`), and its market sensitivity (`Beta`).
 
-There is no cap on one company, or on the whole book. The only stop is the credits you have. Buy and sell both charge a 1% commission.
+Set the amount to **1**, **10**, **100**, or **Max**, then Buy or Sell. The button shows the share count it will trade, for example `Buy (10)`. Sell never sells more shares than you hold. Max spends as much cash as that company can take. Buy and sell both charge a 1% commission.
 
-Each company also shows the last 10-second move and where the price sits against its start, for example `+3% (+8%)`. Green is up, red is down.
+**Graph** switches to two save-persistent line charts: the company you pick (with a horizontal **Bought** break-even line if you hold shares), and the value of everything you hold. **Table** returns to the holdings list.
 
-**Graph** switches to two line charts: the company you pick, and the value of everything you hold. Each point is one 10-second tick. The line is green when that series is up from its start, and red when it is down. **Table** returns to the holdings list.
+**Notices on** / **Notices off** turns the flying portfolio banner on or off. News in the logbook still appears.
 
-**Notices on** / **Notices off** turns the flying portfolio banner on or off. News in the logbook still appears. A buy you cannot afford still warns you.
+## How prices move & Live Universe link (CPU-safe)
 
-## How prices move
-
-One shared market move hits every company each tick, the way a real exchange has up days and down days. Calm names (Ministry Ledger, Teladi Profit Guarantee) only take a little of that move and barely twitch on their own. Wild names (Zyarth Blood-Steel, Hatikvah Free Haul, Scale Plate Salvage) take more of the market and jump further by themselves.
-
-A move also lingers for a tick or two, so a rise tends to keep rising before it fades. Teladi and Nopileos start leaning up. Zyarth and Scale Plate start leaning down. Those habits are not fixed. About every 3 minutes, one company changes: it can grow calmer or wilder, follow the market more or less, or flip its long-term lean. The logbook and the Exchange headline say which one changed. A news shock is a one-company jump, then that move fades like the others.
-
-## While you fly
-
-Prices keep moving with the menu closed. If you own shares and the portfolio total changes, a small banner shows the move, for example `Portfolio +2% (+12,400 Cr)`.
+- **Live War & Destruction Events**: When stations or L/XL capital ships are destroyed, the victim faction's stock takes a hit and loses Fair Value, the attacker rallies, and **Scale Plate Salvage** climbs on fresh wreckage. Headlines name the real sector where the battle happened.
+- **Staggered Station Fundamentals**: Every 60 seconds, the exchange scans station counts for one company at a time (zero frame lag) and adjusts its **Fair value** as factions expand or lose territory.
+- **10-Second Price Tick**: Every 10 seconds, prices gravitate toward each company's live **Fair value**, combined with market beta, momentum, and company volatility. When the Exchange menu is closed, no UI strings or Lua events are sent.
 
 ## Companies
 

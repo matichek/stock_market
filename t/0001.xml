@@ -69,5 +69,34 @@
     <t id="85">Low</t>
     <t id="86">High</t>
     <t id="87">Portfolio</t>
+
+    <t id="90">[WAR] %1 tumbled after a station was destroyed in %2.</t>
+    <t id="91">[WAR] %1 rallied after destroying a hostile station in %2.</t>
+    <t id="92">[WAR] %1 slipped after a capital ship loss in %2.</t>
+    <t id="93">[WAR] %1 surged as a hostile capital ship was destroyed in %2.</t>
+    <t id="94">[SALVAGE] Scale Plate Salvage climbed on fresh capital wreckage in %1.</t>
+    <t id="95">deep space</t>
+
+    <t id="100">Fair value</t>
+    <t id="101">Low</t>
+    <t id="102">High</t>
+    <t id="103">Bought</t>
+    <t id="104">Swing</t>
+    <t id="105">Beta</t>
+
+    <t id="130">Backed by Argon Federation stations and shipyards. Drops on Argon station or capital losses; rallies on hostile kills.</t>
+    <t id="131">Backed by Antigone Republic stations and defense yards. Sensitive to frontier station losses and capital engagements.</t>
+    <t id="132">Backed by Teladi Company trade stations. Low volatility; steady growth as Teladi station network expands.</t>
+    <t id="133">Backed by Ministry of Finance stations and bonds. Lowest volatility; tracks Ministry station stability.</t>
+    <t id="134">Backed by Godrealm of the Paranid stations and foundries. Moves with Paranid station count and war victories.</t>
+    <t id="135">Backed by Holy Order of the Pontifex war yards. Moves with HOP station count and front-line capital battles.</t>
+    <t id="136">Backed by Split war foundries and anti-Xenon fronts. High volatility; sensitive to Xenon station presence.</t>
+    <t id="137">Backed by Hatikvah Free League stations and corridor traffic. High volatility; sensitive to Hatikvah station losses.</t>
+    <t id="138">Composite freight index tracking combined Argon and Teladi station networks.</t>
+    <t id="139">Mercantile index tracking Teladi Company and Ministry commercial station density.</t>
+    <t id="140">Resource trust tracking Teladi and Paranid industrial and mining station networks.</t>
+    <t id="141">Front-line logistics index driven by the Argon/Antigone balance of power against Holy Order stations.</t>
+    <t id="142">Mining index tracking combined Argon and Antigone industrial station networks.</t>
+    <t id="143">Salvage syndicate that profits whenever any station or capital ship is destroyed across the galaxy.</t>
   </page>
 </language>
