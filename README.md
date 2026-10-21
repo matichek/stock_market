@@ -36,12 +36,12 @@ Set the amount to **1**, **10**, **100**, or **Max**, then Buy or Sell. The butt
 
 **Graph** switches to two save-persistent line charts: the company you pick (with a horizontal **Bought** break-even line if you hold shares), and the value of everything you hold. **Table** returns to the holdings list.
 
-**Notices on** / **Notices off** turns the flying portfolio banner on or off. News in the logbook still appears.
+**Notices on** / **Notices off** turns the 1-minute cumulative portfolio notification (`Portfolio +2% (+20000 Cr)`) on or off. News in the logbook still appears.
 
 ## How prices move & Live Universe link (CPU-safe)
 
 - **Live War & Destruction Events**: When stations or L/XL capital ships are destroyed, the victim faction's stock takes a hit and loses Fair Value, the attacker rallies, and **Scale Plate Salvage** climbs on fresh wreckage. Headlines name the real sector where the battle happened.
-- **Staggered Station Fundamentals**: Every 60 seconds, the exchange scans station counts for one company at a time (zero frame lag) and adjusts its **Fair value** as factions expand or lose territory.
+- **Staggered Station Fundamentals**: On load, Fair Values calibrate from live galaxy station counts, and every 20 seconds the exchange scans one company at a time (zero frame lag) to adjust its **Fair value** as factions expand or lose territory.
 - **10-Second Price Tick**: Every 10 seconds, prices gravitate toward each company's live **Fair value**, combined with market beta, momentum, and company volatility. When the Exchange menu is closed, no UI strings or Lua events are sent.
 
 ## Companies
