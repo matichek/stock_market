@@ -1,6 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mdscript name="StockMarket" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
   <cues>
+    <library name="SM_InitGlobals">
+      <actions>
+        <do_if value="@md.$SM_Ready != true">
+          <set_value name="md.$SM_Ids" exact="[
+            'argon_yards',
+            'antigone_works',
+            'teladi_profit',
+            'ministry_ledger',
+            'paranid_lattice',
+            'pontifex_reliquary',
+            'zyarth_steel',
+            'hatikvah_haul',
+            'eighteen_freight',
+            'grand_exchange',
+            'nopileos_ore',
+            'second_contact',
+            'black_hole_mining',
+            'scale_plate'
+          ]" />
+          <set_value name="md.$SM_Prices" exact="[100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]" />
+          <set_value name="md.$SM_Shares" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
+          <set_value name="md.$SM_Avg" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
+          <set_value name="md.$SM_Swing" exact="[2, 2, 1, 1, 2, 2, 4, 4, 2, 3, 3, 2, 3, 4]" />
+          <set_value name="md.$SM_Beta" exact="[100, 80, 40, 20, 70, 60, 130, 150, 110, 140, 120, 90, 110, 160]" />
+          <set_value name="md.$SM_Drift" exact="[0, 0, 1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, -1]" />
+          <set_value name="md.$SM_LastStep" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
+          <set_value name="md.$SM_FairValue" exact="[100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]" />
+          <set_value name="md.$SM_BaseSt" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
+          <set_value name="md.$SM_WarShock" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
+          <set_value name="md.$SM_RegimeTicks" exact="0" />
+          <set_value name="md.$SM_MacroTicks" exact="0" />
+          <set_value name="md.$SM_ScanIdx" exact="0" />
+          <set_value name="md.$SM_MenuOpen" exact="true" />
+          <set_value name="md.$SM_Notices" exact="true" />
+          <set_value name="md.$SM_TickGen" exact="0" />
+          <set_value name="md.$SM_LastTotal" exact="0" />
+          <set_value name="md.$SM_LastWarTime" exact="0s" />
+          <set_value name="md.$SM_Headline" exact="''" />
+          <set_value name="md.$SM_Ready" exact="true" />
+          <write_to_logbook category="tips" title="{551001,2}" />
+        </do_if>
+        <do_if value="@md.$SM_Beta == null">
+          <set_value name="md.$SM_Swing" exact="[2, 2, 1, 1, 2, 2, 4, 4, 2, 3, 3, 2, 3, 4]" />
+          <set_value name="md.$SM_Beta" exact="[100, 80, 40, 20, 70, 60, 130, 150, 110, 140, 120, 90, 110, 160]" />
+          <set_value name="md.$SM_Drift" exact="[0, 0, 1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, -1]" />
+          <set_value name="md.$SM_LastStep" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
+        </do_if>
+        <do_if value="@md.$SM_FairValue == null">
+          <set_value name="md.$SM_FairValue" exact="[100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]" />
+          <do_all exact="14" counter="$r">
+            <do_if value="md.$SM_Prices.{$r} le 45">
+              <set_value name="md.$SM_Prices.{$r}" exact="100" />
+              <set_value name="md.$SM_LastStep.{$r}" exact="0" />
+            </do_if>
+          </do_all>
+        </do_if>
+        <do_if value="@md.$SM_BaseSt == null">
+          <set_value name="md.$SM_BaseSt" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
+        </do_if>
+        <do_if value="@md.$SM_WarShock == null">
+          <set_value name="md.$SM_WarShock" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
+        </do_if>
+        <do_if value="@md.$SM_RegimeTicks == null">
+          <set_value name="md.$SM_RegimeTicks" exact="0" />
+        </do_if>
+        <do_if value="@md.$SM_MacroTicks == null">
+          <set_value name="md.$SM_MacroTicks" exact="0" />
+          <set_value name="md.$SM_ScanIdx" exact="0" />
+        </do_if>
+        <do_if value="@md.$SM_MenuOpen == null">
+          <set_value name="md.$SM_MenuOpen" exact="true" />
+        </do_if>
+        <do_if value="@md.$SM_LastWarTime == null">
+          <set_value name="md.$SM_LastWarTime" exact="0s" />
+        </do_if>
+        <do_if value="@md.$SM_Notices == null">
+          <set_value name="md.$SM_Notices" exact="true" />
+        </do_if>
+        <do_if value="@md.$SM_TickGen == null">
+          <set_value name="md.$SM_TickGen" exact="0" />
+        </do_if>
+        <do_if value="@md.$SM_Stations != null">
+          <remove_value name="md.$SM_Stations" />
+        </do_if>
+        <do_if value="@md.$SM_Hist != null">
+          <remove_value name="md.$SM_Hist" />
+        </do_if>
+        <do_if value="@md.$SM_PortHist != null">
+          <remove_value name="md.$SM_PortHist" />
+        </do_if>
+      </actions>
+    </library>
+
     <library name="SM_StockName">
       <actions>
         <do_if value="md.$SM_NameIdx == 1"><set_value name="md.$SM_NameTemp" exact="{551001,30}" /></do_if>
@@ -83,24 +176,6 @@
       </actions>
     </library>
 
-    <library name="SM_RecordHistory">
-      <actions>
-        <do_all exact="14" counter="$i">
-          <set_value name="$hList" exact="md.$SM_Hist.{$i}" />
-          <append_to_list name="$hList" exact="(md.$SM_Prices.{$i})i" />
-          <do_if value="$hList.count gt 24">
-            <remove_value name="$hList.{1}" />
-          </do_if>
-        </do_all>
-        <do_if value="md.$SM_Owned gt 0">
-          <append_to_list name="md.$SM_PortHist" exact="(md.$SM_ValueScratch)i" />
-          <do_if value="md.$SM_PortHist.count gt 24">
-            <remove_value name="md.$SM_PortHist.{1}" />
-          </do_if>
-        </do_if>
-      </actions>
-    </library>
-
     <library name="SM_MacroScan">
       <actions>
         <set_value name="md.$SM_ScanIdx" exact="(md.$SM_ScanIdx + 1)i" />
@@ -109,130 +184,100 @@
         </do_if>
         <set_value name="$sIdx" exact="md.$SM_ScanIdx" />
         <set_value name="$stCount" exact="0" />
+        <set_value name="$oldBase" exact="(md.$SM_BaseSt.{$sIdx})i" />
         <set_value name="$targetFair" exact="(md.$SM_FairValue.{$sIdx})i" />
 
         <do_if value="$sIdx == 1 and @faction.argon != null">
           <find_station name="$sts" space="player.galaxy" owner="faction.argon" multiple="true" />
           <set_value name="$stCount" exact="@$sts.count" />
-          <do_if value="md.$SM_BaseSt.{$sIdx} le 0 and $stCount gt 0">
+          <remove_value name="$sts" />
+          <do_if value="$oldBase le 0 and $stCount gt 0">
             <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
+            <set_value name="$oldBase" exact="$stCount" />
           </do_if>
-          <set_value name="$base" exact="if md.$SM_BaseSt.{$sIdx} gt 0 then md.$SM_BaseSt.{$sIdx} else $stCount" />
-          <set_value name="$targetFair" exact="(100 + (($stCount - $base) * 3))i" />
-          <do_all exact="$sts.count" counter="$k">
-            <do_if value="@$sts.{$k}.exists and @$sts.{$k}.sector.exists">
-              <add_to_group groupname="md.$SM_Stations" object="$sts.{$k}" />
-            </do_if>
-          </do_all>
+          <set_value name="$targetFair" exact="(100 + (($stCount - $oldBase) * 3))i" />
         </do_if>
         <do_elseif value="$sIdx == 2 and @faction.antigone != null">
           <find_station name="$sts" space="player.galaxy" owner="faction.antigone" multiple="true" />
           <set_value name="$stCount" exact="@$sts.count" />
-          <do_if value="md.$SM_BaseSt.{$sIdx} le 0 and $stCount gt 0">
+          <remove_value name="$sts" />
+          <do_if value="$oldBase le 0 and $stCount gt 0">
             <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
+            <set_value name="$oldBase" exact="$stCount" />
           </do_if>
-          <set_value name="$base" exact="if md.$SM_BaseSt.{$sIdx} gt 0 then md.$SM_BaseSt.{$sIdx} else $stCount" />
-          <set_value name="$targetFair" exact="(100 + (($stCount - $base) * 3))i" />
-          <do_all exact="$sts.count" counter="$k">
-            <do_if value="@$sts.{$k}.exists and @$sts.{$k}.sector.exists">
-              <add_to_group groupname="md.$SM_Stations" object="$sts.{$k}" />
-            </do_if>
-          </do_all>
+          <set_value name="$targetFair" exact="(100 + (($stCount - $oldBase) * 3))i" />
         </do_elseif>
         <do_elseif value="$sIdx == 3 and @faction.teladi != null">
           <find_station name="$sts" space="player.galaxy" owner="faction.teladi" multiple="true" />
           <set_value name="$stCount" exact="@$sts.count" />
-          <do_if value="md.$SM_BaseSt.{$sIdx} le 0 and $stCount gt 0">
+          <remove_value name="$sts" />
+          <do_if value="$oldBase le 0 and $stCount gt 0">
             <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
+            <set_value name="$oldBase" exact="$stCount" />
           </do_if>
-          <set_value name="$base" exact="if md.$SM_BaseSt.{$sIdx} gt 0 then md.$SM_BaseSt.{$sIdx} else $stCount" />
-          <set_value name="$targetFair" exact="(102 + (($stCount - $base) * 2))i" />
-          <do_all exact="$sts.count" counter="$k">
-            <do_if value="@$sts.{$k}.exists and @$sts.{$k}.sector.exists">
-              <add_to_group groupname="md.$SM_Stations" object="$sts.{$k}" />
-            </do_if>
-          </do_all>
+          <set_value name="$targetFair" exact="(102 + (($stCount - $oldBase) * 2))i" />
         </do_elseif>
         <do_elseif value="$sIdx == 4 and @faction.ministry != null">
           <find_station name="$sts" space="player.galaxy" owner="faction.ministry" multiple="true" />
           <set_value name="$stCount" exact="@$sts.count" />
-          <do_if value="md.$SM_BaseSt.{$sIdx} le 0 and $stCount gt 0">
+          <remove_value name="$sts" />
+          <do_if value="$oldBase le 0 and $stCount gt 0">
             <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
+            <set_value name="$oldBase" exact="$stCount" />
           </do_if>
-          <set_value name="$base" exact="if md.$SM_BaseSt.{$sIdx} gt 0 then md.$SM_BaseSt.{$sIdx} else $stCount" />
-          <set_value name="$targetFair" exact="(100 + (($stCount - $base) * 4))i" />
-          <do_all exact="$sts.count" counter="$k">
-            <do_if value="@$sts.{$k}.exists and @$sts.{$k}.sector.exists">
-              <add_to_group groupname="md.$SM_Stations" object="$sts.{$k}" />
-            </do_if>
-          </do_all>
+          <set_value name="$targetFair" exact="(100 + (($stCount - $oldBase) * 4))i" />
         </do_elseif>
         <do_elseif value="$sIdx == 5 and @faction.paranid != null">
           <find_station name="$sts" space="player.galaxy" owner="faction.paranid" multiple="true" />
           <set_value name="$stCount" exact="@$sts.count" />
-          <do_if value="md.$SM_BaseSt.{$sIdx} le 0 and $stCount gt 0">
+          <remove_value name="$sts" />
+          <do_if value="$oldBase le 0 and $stCount gt 0">
             <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
+            <set_value name="$oldBase" exact="$stCount" />
           </do_if>
-          <set_value name="$base" exact="if md.$SM_BaseSt.{$sIdx} gt 0 then md.$SM_BaseSt.{$sIdx} else $stCount" />
-          <set_value name="$targetFair" exact="(100 + (($stCount - $base) * 3))i" />
-          <do_all exact="$sts.count" counter="$k">
-            <do_if value="@$sts.{$k}.exists and @$sts.{$k}.sector.exists">
-              <add_to_group groupname="md.$SM_Stations" object="$sts.{$k}" />
-            </do_if>
-          </do_all>
+          <set_value name="$targetFair" exact="(100 + (($stCount - $oldBase) * 3))i" />
         </do_elseif>
         <do_elseif value="$sIdx == 6 and @faction.holyorder != null">
           <find_station name="$sts" space="player.galaxy" owner="faction.holyorder" multiple="true" />
           <set_value name="$stCount" exact="@$sts.count" />
-          <do_if value="md.$SM_BaseSt.{$sIdx} le 0 and $stCount gt 0">
+          <remove_value name="$sts" />
+          <do_if value="$oldBase le 0 and $stCount gt 0">
             <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
+            <set_value name="$oldBase" exact="$stCount" />
           </do_if>
-          <set_value name="$base" exact="if md.$SM_BaseSt.{$sIdx} gt 0 then md.$SM_BaseSt.{$sIdx} else $stCount" />
-          <set_value name="$targetFair" exact="(100 + (($stCount - $base) * 3))i" />
-          <do_all exact="$sts.count" counter="$k">
-            <do_if value="@$sts.{$k}.exists and @$sts.{$k}.sector.exists">
-              <add_to_group groupname="md.$SM_Stations" object="$sts.{$k}" />
-            </do_if>
-          </do_all>
+          <set_value name="$targetFair" exact="(100 + (($stCount - $oldBase) * 3))i" />
         </do_elseif>
         <do_elseif value="$sIdx == 7">
           <do_if value="@faction.split != null">
             <find_station name="$sts" space="player.galaxy" owner="faction.split" multiple="true" />
             <set_value name="$stCount" exact="@$sts.count" />
-            <do_if value="md.$SM_BaseSt.{$sIdx} le 0 and $stCount gt 0">
+            <remove_value name="$sts" />
+            <do_if value="$oldBase le 0 and $stCount gt 0">
               <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
+              <set_value name="$oldBase" exact="$stCount" />
             </do_if>
-            <set_value name="$base" exact="if md.$SM_BaseSt.{$sIdx} gt 0 then md.$SM_BaseSt.{$sIdx} else $stCount" />
-            <set_value name="$targetFair" exact="(98 + (($stCount - $base) * 3))i" />
-            <do_all exact="$sts.count" counter="$k">
-              <do_if value="@$sts.{$k}.exists and @$sts.{$k}.sector.exists">
-                <add_to_group groupname="md.$SM_Stations" object="$sts.{$k}" />
-              </do_if>
-            </do_all>
+            <set_value name="$targetFair" exact="(98 + (($stCount - $oldBase) * 3))i" />
           </do_if>
           <do_elseif value="@faction.xenon != null">
             <find_station name="$sts" space="player.galaxy" owner="faction.xenon" multiple="true" />
             <set_value name="$stCount" exact="@$sts.count" />
-            <do_if value="md.$SM_BaseSt.{$sIdx} le 0 and $stCount gt 0">
+            <remove_value name="$sts" />
+            <do_if value="$oldBase le 0 and $stCount gt 0">
               <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
+              <set_value name="$oldBase" exact="$stCount" />
             </do_if>
-            <set_value name="$base" exact="if md.$SM_BaseSt.{$sIdx} gt 0 then md.$SM_BaseSt.{$sIdx} else $stCount" />
-            <set_value name="$targetFair" exact="(98 - (($stCount - $base) * 3))i" />
+            <set_value name="$targetFair" exact="(98 - (($stCount - $oldBase) * 3))i" />
           </do_elseif>
         </do_elseif>
         <do_elseif value="$sIdx == 8 and @faction.hatikvah != null">
           <find_station name="$sts" space="player.galaxy" owner="faction.hatikvah" multiple="true" />
           <set_value name="$stCount" exact="@$sts.count" />
-          <do_if value="md.$SM_BaseSt.{$sIdx} le 0 and $stCount gt 0">
+          <remove_value name="$sts" />
+          <do_if value="$oldBase le 0 and $stCount gt 0">
             <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
+            <set_value name="$oldBase" exact="$stCount" />
           </do_if>
-          <set_value name="$base" exact="if md.$SM_BaseSt.{$sIdx} gt 0 then md.$SM_BaseSt.{$sIdx} else $stCount" />
-          <set_value name="$targetFair" exact="(100 + (($stCount - $base) * 5))i" />
-          <do_all exact="$sts.count" counter="$k">
-            <do_if value="@$sts.{$k}.exists and @$sts.{$k}.sector.exists">
-              <add_to_group groupname="md.$SM_Stations" object="$sts.{$k}" />
-            </do_if>
-          </do_all>
+          <set_value name="$targetFair" exact="(100 + (($stCount - $oldBase) * 5))i" />
         </do_elseif>
         <do_elseif value="$sIdx == 9">
           <set_value name="$targetFair" exact="((md.$SM_FairValue.{1} + md.$SM_FairValue.{3}) / 2)i" />
@@ -252,16 +297,12 @@
         <do_elseif value="$sIdx == 14 and @faction.xenon != null">
           <find_station name="$sts" space="player.galaxy" owner="faction.xenon" multiple="true" />
           <set_value name="$stCount" exact="@$sts.count" />
-          <do_if value="md.$SM_BaseSt.{$sIdx} le 0 and $stCount gt 0">
+          <remove_value name="$sts" />
+          <do_if value="$oldBase le 0 and $stCount gt 0">
             <set_value name="md.$SM_BaseSt.{$sIdx}" exact="$stCount" />
+            <set_value name="$oldBase" exact="$stCount" />
           </do_if>
-          <set_value name="$base" exact="if md.$SM_BaseSt.{$sIdx} gt 0 then md.$SM_BaseSt.{$sIdx} else $stCount" />
-          <set_value name="$targetFair" exact="(100 + (($stCount - $base) * 3))i" />
-          <do_all exact="$sts.count" counter="$k">
-            <do_if value="@$sts.{$k}.exists and @$sts.{$k}.sector.exists">
-              <add_to_group groupname="md.$SM_Stations" object="$sts.{$k}" />
-            </do_if>
-          </do_all>
+          <set_value name="$targetFair" exact="(100 + (($stCount - $oldBase) * 3))i" />
         </do_elseif>
 
         <do_if value="$targetFair lt 55">
@@ -290,36 +331,26 @@
           <set_value name="$s" exact="(md.$SM_Shares.{$i})i" />
           <set_value name="$a" exact="(md.$SM_Avg.{$i})i" />
           <set_value name="$ls" exact="(md.$SM_LastStep.{$i})i" />
-          <set_value name="$fv" exact="(md.$SM_FairValue.{$i})i" />
+          <set_value name="$fv" exact="if @md.$SM_FairValue.{$i} != null then (md.$SM_FairValue.{$i})i else 100" />
           <set_value name="$sw" exact="(md.$SM_Swing.{$i})i" />
           <set_value name="$bt" exact="(md.$SM_Beta.{$i})i" />
-          <set_value name="$hStr" exact="''" />
-          <set_value name="$hList" exact="md.$SM_Hist.{$i}" />
-          <do_all exact="$hList.count" counter="$h">
-            <do_if value="$h gt 1">
-              <set_value name="$hStr" exact="$hStr + ':' + ($hList.{$h})i" />
-            </do_if>
-            <do_else>
-              <set_value name="$hStr" exact="'' + ($hList.{$h})i" />
-            </do_else>
-          </do_all>
-          <set_value name="$blob" exact="$blob + md.$SM_Ids.{$i} + ',' + $p + ',' + $s + ',' + $a + ',' + $ls + ',' + $fv + ',' + $sw + ',' + $bt + ',' + $hStr + ';'" />
-        </do_all>
-        <set_value name="$pHistStr" exact="''" />
-        <do_all exact="md.$SM_PortHist.count" counter="$ph">
-          <do_if value="$ph gt 1">
-            <set_value name="$pHistStr" exact="$pHistStr + ':' + (md.$SM_PortHist.{$ph})i" />
-          </do_if>
-          <do_else>
-            <set_value name="$pHistStr" exact="'' + (md.$SM_PortHist.{$ph})i" />
-          </do_else>
+          <set_value name="$blob" exact="$blob + md.$SM_Ids.{$i} + ',' + $p + ',' + $s + ',' + $a + ',' + $ls + ',' + $fv + ',' + $sw + ',' + $bt + ';'" />
         </do_all>
         <set_value name="$note" exact="if md.$SM_Notices == false then '0' else '1'" />
         <set_value name="$gen" exact="(md.$SM_TickGen)i" />
-        <set_value name="$blob" exact="$blob + '||' + md.$SM_Headline + '||' + $note + '||' + $gen + '||' + $pHistStr" />
+        <set_value name="$blob" exact="$blob + '||' + md.$SM_Headline + '||' + $note + '||' + $gen" />
         <raise_lua_event name="'stockmarket.state'" param="$blob" />
       </actions>
     </library>
+
+    <cue name="StockMarket_Reloaded" instantiate="true">
+      <conditions>
+        <event_game_loaded />
+      </conditions>
+      <actions>
+        <include_actions ref="SM_InitGlobals" />
+      </actions>
+    </cue>
 
     <cue name="StockMarket_Start" namespace="this">
       <conditions>
@@ -329,149 +360,10 @@
         </check_any>
       </conditions>
       <actions>
-        <do_if value="@md.$SM_Ready != true">
-          <set_value name="md.$SM_Ids" exact="[
-            'argon_yards',
-            'antigone_works',
-            'teladi_profit',
-            'ministry_ledger',
-            'paranid_lattice',
-            'pontifex_reliquary',
-            'zyarth_steel',
-            'hatikvah_haul',
-            'eighteen_freight',
-            'grand_exchange',
-            'nopileos_ore',
-            'second_contact',
-            'black_hole_mining',
-            'scale_plate'
-          ]" />
-          <set_value name="md.$SM_Prices" exact="[100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]" />
-          <set_value name="md.$SM_Shares" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
-          <set_value name="md.$SM_Avg" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
-          <set_value name="md.$SM_Swing" exact="[2, 2, 1, 1, 2, 2, 4, 4, 2, 3, 3, 2, 3, 4]" />
-          <set_value name="md.$SM_Beta" exact="[100, 80, 40, 20, 70, 60, 130, 150, 110, 140, 120, 90, 110, 160]" />
-          <set_value name="md.$SM_Drift" exact="[0, 0, 1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, -1]" />
-          <set_value name="md.$SM_LastStep" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
-          <set_value name="md.$SM_FairValue" exact="[100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]" />
-          <set_value name="md.$SM_BaseSt" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
-          <set_value name="md.$SM_WarShock" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
-          <set_value name="md.$SM_Hist" exact="[[100], [100], [100], [100], [100], [100], [100], [100], [100], [100], [100], [100], [100], [100]]" />
-          <set_value name="md.$SM_PortHist" exact="[]" />
-          <set_value name="md.$SM_RegimeTicks" exact="0" />
-          <set_value name="md.$SM_MacroTicks" exact="0" />
-          <set_value name="md.$SM_ScanIdx" exact="0" />
-          <set_value name="md.$SM_MenuOpen" exact="false" />
-          <set_value name="md.$SM_Notices" exact="true" />
-          <set_value name="md.$SM_TickGen" exact="0" />
-          <set_value name="md.$SM_LastTotal" exact="0" />
-          <set_value name="md.$SM_LastWarTime" exact="0s" />
-          <set_value name="md.$SM_Headline" exact="''" />
-          <set_value name="md.$SM_Ready" exact="true" />
-          <write_to_logbook category="tips" title="{551001,2}" />
-        </do_if>
-        <do_if value="@md.$SM_Beta == null">
-          <set_value name="md.$SM_Swing" exact="[2, 2, 1, 1, 2, 2, 4, 4, 2, 3, 3, 2, 3, 4]" />
-          <set_value name="md.$SM_Beta" exact="[100, 80, 40, 20, 70, 60, 130, 150, 110, 140, 120, 90, 110, 160]" />
-          <set_value name="md.$SM_Drift" exact="[0, 0, 1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, -1]" />
-          <set_value name="md.$SM_LastStep" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
-        </do_if>
-        <do_if value="@md.$SM_FairValue == null">
-          <set_value name="md.$SM_FairValue" exact="[100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]" />
-        </do_if>
-        <do_if value="@md.$SM_BaseSt == null">
-          <set_value name="md.$SM_BaseSt" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
-        </do_if>
-        <do_if value="@md.$SM_WarShock == null">
-          <set_value name="md.$SM_WarShock" exact="[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]" />
-        </do_if>
-        <do_if value="@md.$SM_Hist == null">
-          <set_value name="md.$SM_Hist" exact="[[], [], [], [], [], [], [], [], [], [], [], [], [], []]" />
-          <do_all exact="14" counter="$i">
-            <append_to_list name="md.$SM_Hist.{$i}" exact="(md.$SM_Prices.{$i})i" />
-          </do_all>
-        </do_if>
-        <do_if value="@md.$SM_PortHist == null">
-          <set_value name="md.$SM_PortHist" exact="[]" />
-        </do_if>
-        <do_if value="@md.$SM_RegimeTicks == null">
-          <set_value name="md.$SM_RegimeTicks" exact="0" />
-        </do_if>
-        <do_if value="@md.$SM_MacroTicks == null">
-          <set_value name="md.$SM_MacroTicks" exact="0" />
-          <set_value name="md.$SM_ScanIdx" exact="0" />
-        </do_if>
-        <do_if value="@md.$SM_MenuOpen == null">
-          <set_value name="md.$SM_MenuOpen" exact="false" />
-        </do_if>
-        <do_if value="@md.$SM_LastWarTime == null">
-          <set_value name="md.$SM_LastWarTime" exact="0s" />
-        </do_if>
-        <do_if value="@md.$SM_Notices == null">
-          <set_value name="md.$SM_Notices" exact="true" />
-        </do_if>
-        <do_if value="@md.$SM_TickGen == null">
-          <set_value name="md.$SM_TickGen" exact="0" />
-        </do_if>
-        <do_if value="@md.$SM_Stations == null">
-          <create_group groupname="md.$SM_Stations" />
-        </do_if>
+        <include_actions ref="SM_InitGlobals" />
+        <include_actions ref="SM_Publish" />
       </actions>
       <cues>
-        <cue name="StockMarket_StationDestroyed" instantiate="true">
-          <conditions>
-            <event_object_destroyed group="md.$SM_Stations" />
-            <check_value value="player.age - @md.$SM_LastWarTime ge 4s" />
-          </conditions>
-          <actions>
-            <set_value name="md.$SM_LastWarTime" exact="player.age" />
-            <set_value name="$victim" exact="event.object" />
-            <set_value name="$killer" exact="@event.param" />
-            <set_value name="$sectorName" exact="if @$victim.sector.knownname != null then $victim.sector.knownname else {551001,95}" />
-
-            <set_value name="md.$SM_FacQuery" exact="@$victim.owner" />
-            <include_actions ref="SM_FactionToIdx" />
-            <set_value name="$vIdx" exact="md.$SM_FacIdx" />
-
-            <set_value name="md.$SM_FacQuery" exact="@$killer.owner" />
-            <include_actions ref="SM_FactionToIdx" />
-            <set_value name="$kIdx" exact="md.$SM_FacIdx" />
-
-            <set_value name="md.$SM_WarShock.{14}" exact="(md.$SM_WarShock.{14} + 5)i" />
-            <set_value name="md.$SM_FairValue.{14}" exact="(md.$SM_FairValue.{14} + 2)i" />
-
-            <do_if value="$vIdx gt 0 and $vIdx le 14">
-              <set_value name="$lossShock" min="8" max="14" />
-              <set_value name="md.$SM_WarShock.{$vIdx}" exact="(md.$SM_WarShock.{$vIdx} - $lossShock)i" />
-              <set_value name="md.$SM_FairValue.{$vIdx}" exact="(md.$SM_FairValue.{$vIdx} - 5)i" />
-              <set_value name="md.$SM_NameIdx" exact="$vIdx" />
-              <include_actions ref="SM_StockName" />
-              <set_value name="md.$SM_Headline" exact="{551001,90}.[md.$SM_NameTemp, $sectorName]" />
-              <write_to_logbook category="news" title="md.$SM_Headline" />
-            </do_if>
-            <do_elseif value="$kIdx gt 0 and $kIdx le 14">
-              <set_value name="$winShock" min="6" max="11" />
-              <set_value name="md.$SM_WarShock.{$kIdx}" exact="(md.$SM_WarShock.{$kIdx} + $winShock)i" />
-              <set_value name="md.$SM_FairValue.{$kIdx}" exact="(md.$SM_FairValue.{$kIdx} + 4)i" />
-              <set_value name="md.$SM_NameIdx" exact="$kIdx" />
-              <include_actions ref="SM_StockName" />
-              <set_value name="md.$SM_Headline" exact="{551001,91}.[md.$SM_NameTemp, $sectorName]" />
-              <write_to_logbook category="news" title="md.$SM_Headline" />
-            </do_elseif>
-            <do_else>
-              <set_value name="md.$SM_Headline" exact="{551001,94}.[$sectorName]" />
-              <write_to_logbook category="news" title="md.$SM_Headline" />
-            </do_else>
-
-            <do_if value="$kIdx gt 0 and $kIdx le 14 and $kIdx != $vIdx">
-              <set_value name="md.$SM_WarShock.{$kIdx}" exact="(md.$SM_WarShock.{$kIdx} + 4)i" />
-              <set_value name="md.$SM_FairValue.{$kIdx}" exact="(md.$SM_FairValue.{$kIdx} + 2)i" />
-            </do_if>
-
-            <include_actions ref="SM_ClampFair" />
-          </actions>
-        </cue>
-
         <cue name="StockMarket_PlayerCapKill" instantiate="true">
           <conditions>
             <check_any>
@@ -481,6 +373,7 @@
             <check_value value="player.age - @md.$SM_LastWarTime ge 4s" />
           </conditions>
           <actions>
+            <include_actions ref="SM_InitGlobals" />
             <set_value name="$killed" exact="if event.name == 'event_player_killed_object' then event.param else event.param2" />
             <do_if value="@$killed.isclass.[class.ship_l, class.ship_xl, class.station]">
               <set_value name="md.$SM_LastWarTime" exact="player.age" />
@@ -494,12 +387,22 @@
               <set_value name="md.$SM_FairValue.{14}" exact="(md.$SM_FairValue.{14} + 2)i" />
 
               <do_if value="$vIdx gt 0 and $vIdx le 14">
-                <set_value name="$drop" min="4" max="8" />
-                <set_value name="md.$SM_WarShock.{$vIdx}" exact="(md.$SM_WarShock.{$vIdx} - $drop)i" />
-                <set_value name="md.$SM_FairValue.{$vIdx}" exact="(md.$SM_FairValue.{$vIdx} - 2)i" />
-                <set_value name="md.$SM_NameIdx" exact="$vIdx" />
-                <include_actions ref="SM_StockName" />
-                <set_value name="md.$SM_Headline" exact="{551001,92}.[md.$SM_NameTemp, $sectorName]" />
+                <do_if value="@$killed.isclass.station">
+                  <set_value name="$drop" min="8" max="14" />
+                  <set_value name="md.$SM_WarShock.{$vIdx}" exact="(md.$SM_WarShock.{$vIdx} - $drop)i" />
+                  <set_value name="md.$SM_FairValue.{$vIdx}" exact="(md.$SM_FairValue.{$vIdx} - 5)i" />
+                  <set_value name="md.$SM_NameIdx" exact="$vIdx" />
+                  <include_actions ref="SM_StockName" />
+                  <set_value name="md.$SM_Headline" exact="{551001,90}.[md.$SM_NameTemp, $sectorName]" />
+                </do_if>
+                <do_else>
+                  <set_value name="$drop" min="4" max="8" />
+                  <set_value name="md.$SM_WarShock.{$vIdx}" exact="(md.$SM_WarShock.{$vIdx} - $drop)i" />
+                  <set_value name="md.$SM_FairValue.{$vIdx}" exact="(md.$SM_FairValue.{$vIdx} - 2)i" />
+                  <set_value name="md.$SM_NameIdx" exact="$vIdx" />
+                  <include_actions ref="SM_StockName" />
+                  <set_value name="md.$SM_Headline" exact="{551001,92}.[md.$SM_NameTemp, $sectorName]" />
+                </do_else>
                 <write_to_logbook category="news" title="md.$SM_Headline" />
               </do_if>
               <do_elseif value="@$killed.owner == @faction.xenon or @$killed.owner == @faction.khaak">
@@ -511,7 +414,7 @@
                 <set_value name="md.$SM_FairValue.{$secIdx}" exact="(md.$SM_FairValue.{$secIdx} + 2)i" />
                 <set_value name="md.$SM_NameIdx" exact="$secIdx" />
                 <include_actions ref="SM_StockName" />
-                <set_value name="md.$SM_Headline" exact="{551001,93}.[md.$SM_NameTemp, $sectorName]" />
+                <set_value name="md.$SM_Headline" exact="if @$killed.isclass.station then {551001,91}.[md.$SM_NameTemp, $sectorName] else {551001,93}.[md.$SM_NameTemp, $sectorName]" />
                 <write_to_logbook category="news" title="md.$SM_Headline" />
               </do_elseif>
               <do_else>
@@ -521,12 +424,15 @@
 
               <include_actions ref="SM_ClampFair" />
             </do_if>
+            <remove_value name="$killed" />
           </actions>
         </cue>
 
         <cue name="StockMarket_Tick">
           <delay exact="10s" />
           <actions>
+            <include_actions ref="SM_InitGlobals" />
+
             <set_value name="md.$SM_MacroTicks" exact="(md.$SM_MacroTicks + 1)i" />
             <do_if value="md.$SM_MacroTicks ge 6">
               <set_value name="md.$SM_MacroTicks" exact="0" />
@@ -561,7 +467,10 @@
             <set_value name="$market" min="-2" max="2" />
             <do_all exact="14" counter="$i">
               <set_value name="$price" exact="(md.$SM_Prices.{$i})i" />
-              <set_value name="$fair" exact="(md.$SM_FairValue.{$i})i" />
+              <set_value name="$fair" exact="if @md.$SM_FairValue.{$i} != null then (md.$SM_FairValue.{$i})i else 100" />
+              <do_if value="$fair lt 55">
+                <set_value name="$fair" exact="100" />
+              </do_if>
               <set_value name="$pull" exact="(($fair - $price) / 35)i" />
               <set_value name="$swing" exact="(md.$SM_Swing.{$i})i" />
               <set_value name="$marketPart" exact="(($market * md.$SM_Beta.{$i}) / 100)i" />
@@ -586,7 +495,7 @@
               <do_if value="$shockIdx == $i">
                 <set_value name="$step" exact="($shockPct)i" />
               </do_if>
-              <do_if value="md.$SM_WarShock.{$i} != 0">
+              <do_if value="@md.$SM_WarShock.{$i} != null and md.$SM_WarShock.{$i} != 0">
                 <set_value name="$step" exact="($step + md.$SM_WarShock.{$i})i" />
                 <set_value name="md.$SM_WarShock.{$i}" exact="0" />
               </do_if>
@@ -670,7 +579,6 @@
             </do_if>
 
             <include_actions ref="SM_Sum" />
-            <include_actions ref="SM_RecordHistory" />
             <set_value name="$before" exact="(md.$SM_LastTotal)i" />
             <set_value name="$after" exact="(md.$SM_ValueScratch)i" />
             <do_if value="md.$SM_Notices != false and md.$SM_Owned gt 0 and $before gt 0 and $after != $before">
@@ -687,7 +595,7 @@
             </do_if>
             <set_value name="md.$SM_LastTotal" exact="$after" />
             <set_value name="md.$SM_TickGen" exact="(md.$SM_TickGen + 1)i" />
-            <do_if value="md.$SM_MenuOpen == true">
+            <do_if value="md.$SM_MenuOpen != false">
               <include_actions ref="SM_Publish" />
             </do_if>
             <reset_cue cue="StockMarket_Tick" />
@@ -699,6 +607,7 @@
             <event_ui_triggered screen="'StockMarket'" />
           </conditions>
           <actions>
+            <include_actions ref="SM_InitGlobals" />
             <do_if value="event.param2 == 'sync'">
               <set_value name="md.$SM_MenuOpen" exact="true" />
               <include_actions ref="SM_Publish" />

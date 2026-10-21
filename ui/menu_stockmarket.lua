@@ -1,6 +1,6 @@
 -- Stock Market exchange menu.
 -- State arrives from Mission Director as:
---   id,price,shares,avg,step,fair,swing,beta,hist;...||headline||notices||gen||portHist
+--   id,price,shares,avg,step,fair,swing,beta;...||headline||notices||gen
 
 local menu = {
 	name = "StockMarketMenu",
@@ -50,7 +50,7 @@ local STOCK_DESC = {
 	hatikvah_haul = 137,
 	eighteen_freight = 138,
 	grand_exchange = 139,
-	nopileos_ore = 40 + 100,
+	nopileos_ore = 140,
 	second_contact = 141,
 	black_hole_mining = 142,
 	scale_plate = 143,
@@ -136,6 +136,9 @@ end
 
 local function fairText(stock)
 	local fair = math.floor((stock.fair or 100) + 0.5)
+	if fair < 55 then
+		fair = 100
+	end
 	local price = math.floor((stock.price or 100) + 0.5)
 	local diff = fair - price
 	if diff >= 6 then
@@ -150,9 +153,13 @@ local function stockTooltip(stock)
 	if not stock then
 		return ""
 	end
+	local fair = stock.fair or 100
+	if fair < 55 then
+		fair = 100
+	end
 	local descId = STOCK_DESC[stock.id]
 	local desc = descId and ReadText(551001, descId) or ""
-	local fairLabel = ReadText(551001, 100) .. ": " .. moneyText(stock.fair or 100)
+	local fairLabel = ReadText(551001, 100) .. ": " .. moneyText(fair)
 	local swingLabel = ReadText(551001, 104) .. ": " .. tostring(stock.swing or 2) .. "/4  |  " .. ReadText(551001, 105) .. ": " .. tostring(stock.beta or 100) .. "%"
 	if desc ~= "" then
 		return desc .. "\n" .. fairLabel .. "  |  " .. swingLabel
@@ -208,32 +215,13 @@ function menu.trade(side, id)
 	AddUITriggeredEvent("StockMarket", side .. "_" .. id, qty)
 end
 
-local function parseSeries(str)
-	local out = {}
-	if not str or str == "" then
-		return out
-	end
-	for val in tostring(str):gmatch("[^:]+") do
-		local num = tonumber(val)
-		if num then
-			table.insert(out, math.floor(num + 0.5))
-		end
-	end
-	return out
-end
-
 function menu.parse(blob)
 	blob = tostring(blob or "")
-	local body, headline, notices, gen, portHistStr = blob:match("^(.-)||(.*)||([01])||([%-%d%.]+)||(.*)$")
-	if not body then
-		body, headline, notices, gen = blob:match("^(.-)||(.*)||([01])||([%-%d%.]+)$")
-		portHistStr = nil
-	end
+	local body, headline, notices, gen = blob:match("^(.-)||(.*)||([01])||([%-%d%.]+)$")
 	if not body then
 		body, headline = blob:match("^(.-)||(.*)$")
 		notices = "1"
 		gen = nil
-		portHistStr = nil
 	end
 	if not body then
 		body = blob
@@ -244,7 +232,7 @@ function menu.parse(blob)
 	menu.pendingGen = gen and math.floor((tonumber(gen) or 0) + 0.5) or nil
 	menu.stocks = {}
 	for rec in body:gmatch("[^;]+") do
-		local id, price, shares, avg, step, fair, swing, beta, histStr = rec:match("([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]*)")
+		local id, price, shares, avg, step, fair, swing, beta = rec:match("([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+),([^,]+)")
 		if not id then
 			id, price, shares, avg, step = rec:match("([^,]+),([^,]+),([^,]+),([^,]+),([^,]+)")
 		end
@@ -253,27 +241,20 @@ function menu.parse(blob)
 			step = "0"
 		end
 		if id then
-			local stockObj = {
+			local fairNum = math.floor((tonumber(fair) or 100) + 0.5)
+			if fairNum < 55 then
+				fairNum = 100
+			end
+			table.insert(menu.stocks, {
 				id = id,
 				price = math.floor((tonumber(price) or 0) + 0.5),
 				shares = math.floor((tonumber(shares) or 0) + 0.5),
 				avg = math.floor((tonumber(avg) or 0) + 0.5),
 				step = math.floor((tonumber(step) or 0) + 0.5),
-				fair = math.floor((tonumber(fair) or 100) + 0.5),
+				fair = fairNum,
 				swing = math.floor((tonumber(swing) or 2) + 0.5),
 				beta = math.floor((tonumber(beta) or 100) + 0.5),
-			}
-			table.insert(menu.stocks, stockObj)
-			local parsedHist = parseSeries(histStr)
-			if #parsedHist > 0 then
-				menu.history[id] = parsedHist
-			end
-		end
-	end
-	if portHistStr ~= nil then
-		local parsedPort = parseSeries(portHistStr)
-		if #parsedPort > 0 then
-			menu.portHistory = parsedPort
+			})
 		end
 	end
 end
@@ -288,20 +269,31 @@ function menu.record()
 	local total, owned = 0, 0
 	for _, stock in ipairs(menu.stocks) do
 		local series = menu.history[stock.id]
-		if not series or #series == 0 then
+		if not series then
 			series = {}
 			menu.history[stock.id] = series
+		end
+		if #series == 0 then
 			local prev = math.max(40, math.min(250, math.floor(stock.price / (1 + (stock.step or 0) / 100) + 0.5)))
 			table.insert(series, prev)
-			table.insert(series, stock.price)
+		end
+		table.insert(series, stock.price)
+		while #series > 24 do
+			table.remove(series, 1)
 		end
 		if stock.shares > 0 then
 			total = total + stock.price * stock.shares
 			owned = owned + 1
 		end
 	end
-	if owned > 0 and #menu.portHistory == 0 then
+	if owned > 0 then
+		if #menu.portHistory == 0 then
+			table.insert(menu.portHistory, total)
+		end
 		table.insert(menu.portHistory, total)
+		while #menu.portHistory > 24 do
+			table.remove(menu.portHistory, 1)
+		end
 	end
 end
 
@@ -394,7 +386,7 @@ local function drawGraphWidget(frame, x, y, width, title, samples, refPrice, fai
 	end
 
 	local graphTitle = title .. "   (" .. ReadText(551001, 85) .. ": " .. moneyText(low) .. "  |  " .. ReadText(551001, 86) .. ": " .. moneyText(high)
-	if fairPrice and fairPrice > 0 then
+	if fairPrice and fairPrice >= 55 then
 		graphTitle = graphTitle .. "  |  " .. ReadText(551001, 100) .. ": " .. moneyText(fairPrice)
 	end
 	if refPrice and refPrice > 0 then
