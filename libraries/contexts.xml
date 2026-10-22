@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<diff>
-  <add sel="/inputcontexts">
-    <context id="INPUT_CONTEXT_STOCK_MARKET">
-      <action id="INPUT_ACTION_OPEN_STOCK_MARKET" />
-    </context>
-  </add>
-</diff>

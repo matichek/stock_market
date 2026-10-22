@@ -1,9 +1,6 @@
 -- Adds Exchange as the first icon on the Player Information sidebar.
--- Shift+J is read directly. This game version rejects a key binding in ui.xml,
--- so a binding there prevents the whole screen from loading.
 
 local LABEL = "Exchange"
-local held = false
 
 local function label()
 	local read = ReadText(551001, 1)
@@ -73,36 +70,6 @@ local function attach(playerInfo)
 	return true
 end
 
-local user32 = nil
-
-local function keyHeld()
-	if user32 == nil then
-		local ok, lib = pcall(function()
-			local ffi = require("ffi")
-			pcall(ffi.cdef, "short GetAsyncKeyState(int vKey);")
-			return ffi.load("user32")
-		end)
-		user32 = ok and lib or false
-	end
-	if not user32 then
-		return false
-	end
-	local shift = tonumber(user32.GetAsyncKeyState(0x10)) or 0
-	local j = tonumber(user32.GetAsyncKeyState(0x4A)) or 0
-	return shift < 0 and j < 0
-end
-
-local function pollKey()
-	local down = keyHeld()
-	if down and not held then
-		toggle()
-	end
-	held = down
-	if Helper and Helper.addDelayedOneTimeCallbackOnUpdate and getElapsedTime then
-		Helper.addDelayedOneTimeCallbackOnUpdate(pollKey, false, getElapsedTime() + 0.1)
-	end
-end
-
 local tries = 0
 local function schedule()
 	local playerInfo = findPlayerInfo()
@@ -116,4 +83,3 @@ local function schedule()
 end
 
 schedule()
-pollKey()

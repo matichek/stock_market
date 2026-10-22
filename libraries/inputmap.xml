@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<diff>
-  <add sel="/inputmap">
-    <action id="INPUT_ACTION_OPEN_STOCK_MARKET" source="INPUT_SOURCE_KEYBOARD" code="INPUT_KEYCODE_J_SHIFT" />
-  </add>
-</diff>

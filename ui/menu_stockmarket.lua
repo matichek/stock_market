@@ -84,17 +84,6 @@ local function init()
 			OpenMenu("StockMarketMenu", { 0, 0 }, nil)
 		end
 	end
-
-	local previousHotkey = onHotkey
-	function onHotkey(action)
-		if previousHotkey then
-			previousHotkey(action)
-		end
-		if action == "INPUT_ACTION_OPEN_STOCK_MARKET" then
-			StockMarket_Toggle()
-		end
-	end
-	SetScript("onHotkey", onHotkey)
 end
 
 local function stockName(id)
@@ -175,12 +164,16 @@ local function findStock(id)
 	end
 end
 
-local function unitCost(price, buying)
-	local unit = math.floor(price * (buying and 101 or 99) / 100)
-	if buying and unit < 1 then
-		unit = 1
+local function tradeCost(price, qty, buying)
+	qty = math.max(math.floor(qty or 0), 0)
+	if qty < 1 then
+		return 0
 	end
-	return unit
+	local total = math.floor((price or 0) * qty * (buying and 101 or 99) / 100)
+	if buying and total < 1 then
+		total = 1
+	end
+	return total
 end
 
 function menu.resolveQty(stock, side)
@@ -188,11 +181,12 @@ function menu.resolveQty(stock, side)
 		if side == "sell" then
 			return math.floor(stock.shares or 0)
 		end
-		local unit = unitCost(stock.price, true)
-		if unit < 1 then
+		local price = tonumber(stock.price) or 0
+		if price < 1 then
 			return 0
 		end
-		return math.floor(GetPlayerMoney() / unit)
+		local maxQty = math.floor((GetPlayerMoney() * 100) / (price * 101))
+		return math.max(0, maxQty - 10)
 	end
 	local want = tonumber(menu.amountMode) or 1
 	if side == "sell" then
@@ -554,7 +548,7 @@ function menu.display()
 			local fStr, fColor = fairText(stock)
 			row[4]:createText(fStr, { halign = "right", color = fColor })
 			local buyQty = menu.resolveQty(stock, "buy")
-			local pay = unitCost(stock.price, true) * math.max(buyQty, 0)
+			local pay = tradeCost(stock.price, buyQty, true)
 			row[5]:createButton({
 				active = buyQty > 0,
 				mouseOverText = ReadText(551001, 22) .. "  " .. moneyText(pay) .. "  |  " .. stockTooltip(stock),
@@ -604,7 +598,7 @@ function menu.display()
 			row[4]:createText(moneyText(stock.price), { halign = "right" })
 			row[5]:createText(tostring(stock.shares), { halign = "right" })
 			local sellQty = menu.resolveQty(stock, "sell")
-			local proceeds = unitCost(stock.price, false) * sellQty
+			local proceeds = tradeCost(stock.price, sellQty, false)
 			row[6]:createButton({
 				active = sellQty > 0,
 				mouseOverText = ReadText(551001, 23) .. "  " .. moneyText(proceeds) .. "  |  " .. stockTooltip(stock),
@@ -654,7 +648,7 @@ function menu.display()
 
 	for _, stock in ipairs(menu.stocks) do
 		local qty = menu.resolveQty(stock, "buy")
-		local pay = unitCost(stock.price, true) * math.max(qty, 0)
+		local pay = tradeCost(stock.price, qty, true)
 		local trendStr, trendColor = stepTrendText(stock.step, stock.price)
 		local fStr, fColor = fairText(stock)
 		local tip = stockTooltip(stock)

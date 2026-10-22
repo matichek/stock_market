@@ -17,8 +17,6 @@ Needs X4 Foundations 7.00 or newer. No DLC and no other mods are required. The t
 1. Open **Player Information** (the person icon on the top bar).
 2. Click the first icon on the left sidebar. Its tooltip is **Exchange**.
 
-**Shift+J** opens the same screen from the cockpit, and closes it if it is already open. That key is handled by the mod. It does not show up in the control options.
-
 ## On the screen
 
 **Holdings** lists every company you own:
